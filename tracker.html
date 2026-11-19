@@ -1,0 +1,540 @@
+<title>ABAP S/4HANA Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single study column — sticky progress header, phase bands, collapsible week cards with checklists */
+:root{
+  --bg:#f5f7f9; --surface:#ffffff; --surface-2:#eef2f5; --line:#d9e0e6;
+  --fg:#16212b; --muted:#5b6b78; --accent:#0a6e8a; --accent-soft:#d8eef4;
+  --done:#2f8a4f; --done-soft:#e0f2e6; --warn:#a86a00;
+  --f-display:"Space Grotesk",system-ui,sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f161c; --surface:#151f27; --surface-2:#1b2731; --line:#2a3946;
+  --fg:#e3ebf1; --muted:#93a4b2; --accent:#4cb8d6; --accent-soft:#163846;
+  --done:#5cc283; --done-soft:#183a26; --warn:#e2a740; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f161c; --surface:#151f27; --surface-2:#1b2731; --line:#2a3946;
+  --fg:#e3ebf1; --muted:#93a4b2; --accent:#4cb8d6; --accent-soft:#163846;
+  --done:#5cc283; --done-soft:#183a26; --warn:#e2a740; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:14px 12px;display:grid;gap:10px}
+.title-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-size:1.35rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.stat{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.stat b{color:var(--fg);font-weight:500}
+.bar{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button.chip{font:500 .8rem var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:5px 10px;border-radius:999px;cursor:pointer}
+button.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--fg)}
+button.chip:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.save{margin-left:auto;font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.save .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.save[data-s="cloud"] .dot{background:var(--done)}
+.save[data-s="local"] .dot{background:var(--warn)}
+.save[data-s="saving"] .dot{background:var(--accent)}
+
+.intro{color:var(--muted);margin:22px 0 6px;max-width:65ch}
+.phase{margin-top:28px}
+.phase-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:2px solid var(--fg);padding-bottom:6px;margin-bottom:12px}
+.phase-head h2{font-family:var(--f-display);font-size:1.05rem;margin:0;text-transform:uppercase;letter-spacing:.06em}
+.phase-head .stat{font-size:.8rem}
+.weeks{display:grid;gap:10px}
+details.week{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+details.week[data-done="true"]{border-color:var(--done)}
+details.week[data-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+.wk{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);min-width:3.2em}
+.wtitle{min-width:0}
+.wtitle strong{display:block;font-weight:600;font-size:.98rem}
+.wtitle span{display:block;font-size:.8rem;color:var(--muted)}
+.ring{font-family:var(--f-mono);font-size:.78rem;font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+details.week[data-done="true"] .ring{background:var(--done-soft);color:var(--done)}
+details.week[data-current="true"] .ring{background:var(--accent-soft);color:var(--fg)}
+.now{font:600 .68rem var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-left:6px}
+ul.tasks{list-style:none;margin:0;padding:0 14px 12px;display:grid;gap:2px}
+ul.tasks li{min-width:0}
+ul.tasks label{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;padding:7px 6px;border-radius:6px;cursor:pointer}
+ul.tasks label:hover{background:var(--surface-2)}
+ul.tasks input{width:17px;height:17px;margin:2px 0 0;accent-color:var(--done)}
+ul.tasks input:checked+span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.tag{font:500 .66rem var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-right:6px}
+.tag.p{color:var(--done)}
+code{font-family:var(--f-mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+.empty-note{color:var(--muted);font-size:.85rem;padding:0 14px 12px}
+footer{margin-top:36px;color:var(--muted);font-size:.82rem;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.confirm{display:inline-flex;gap:8px;align-items:center}
+@media (max-width:480px){summary{grid-template-columns:1fr auto}.wk{grid-column:1/-1}h1{font-size:1.2rem}}
+@media (prefers-reduced-motion:reduce){.bar>i{transition:none}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="title-row">
+      <h1>ABAP with S/4HANA · 29-Week Tracker</h1>
+      <div class="stat" id="overallStat"><b>0</b> / 0 done</div>
+    </div>
+    <div class="bar" aria-hidden="true"><i id="overallBar"></i></div>
+    <div class="tools">
+      <button class="chip" id="btnPending" aria-pressed="false">Sirf pending dikhao</button>
+      <button class="chip" id="btnExpand">Sab kholo</button>
+      <button class="chip" id="btnCollapse">Sab band karo</button>
+      <div class="save" id="saveState" data-s="init"><span class="dot"></span><span id="saveText">Loading…</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="intro">Har week ke topics aur practice tasks. Tick karte jao, progress apne aap save hoti hai. Detail ke liye <code>SAP-ABAP-S4HANA-Complete-Guide.md</code> ka wahi module kholo.</p>
+  <div id="phases"></div>
+  <footer>
+    <span id="footNote">Roz 2–3 ghante. Consistency &gt; speed.</span>
+    <span class="confirm" id="resetBox">
+      <button class="chip" id="btnReset">Progress reset karo</button>
+    </span>
+  </footer>
+</main>
+
+<script>
+(function(){
+// [week, title, module, phase, [tasks]]  — "T:" = topic, "P:" = practice
+const PHASES = [
+  ["f","Foundation"],["c","Core ABAP"],["r","Real-World Classic ABAP"],
+  ["s","S/4HANA & HANA"],["m","Modern Apps: OData, RAP, Fiori"],["x","Cloud & Career"]
+];
+const W = [
+ [0,"SAP Intro, Architecture & Setup","Module 0","f",[
+  "T:ERP, SAP modules, ECC vs S/4HANA timeline",
+  "T:3-tier architecture, work processes (D, B, U, E, S)",
+  "T:Client concept, DEV → QAS → PRD, transport requests (SE09/SE10)",
+  "T:Packages, $TMP, Z/Y naming, important T-codes list",
+  "P:Practice system ready (BTP trial / Docker ABAP Platform)",
+  "P:Eclipse + ADT install, ABAP project create",
+  "P:SE16N mein MARA, KNA1, VBAK dekho"]],
+ [1,"ABAP Fundamentals I","Module 1","f",[
+  "T:Program types, syntax rules, comments, chained statements",
+  "T:Data types: C, N, D, T, X, I, P, F, STRING, XSTRING",
+  "T:DATA, TYPES, CONSTANTS, TYPE vs LIKE, structures",
+  "T:Operators, IF / CASE / DO / WHILE, EXIT / CONTINUE / CHECK",
+  "P:Calculator program (CASE)",
+  "P:Even/odd, prime, factorial, fibonacci"]],
+ [2,"ABAP Fundamentals II","Module 1","f",[
+  "T:System fields: sy-subrc, sy-tabix, sy-index, sy-datum, sy-uname",
+  "T:String ops: CONCATENATE, SPLIT, CONDENSE, REPLACE, FIND, offset",
+  "T:String templates, ALPHA conversion exits",
+  "T:Message class (SE91), message types S / I / W / E / A / X",
+  "P:String reverse + palindrome",
+  "P:Formatted output with string templates"]],
+ [3,"ABAP Data Dictionary","Module 2","c",[
+  "T:Domain → Data Element → Field hierarchy",
+  "T:Transparent tables, delivery class, technical settings, buffering",
+  "T:Check table vs value table, foreign keys, fixed values",
+  "T:Structures, table types, include vs append structure",
+  "T:Views (DB, projection, maintenance, help), search helps",
+  "T:Lock objects (ENQUEUE / DEQUEUE, modes E S X O), indexes",
+  "P:ZEMPLOYEE table + TMG + SM30 se data",
+  "P:Search help + lock object banao"]],
+ [4,"Internal Tables","Module 3","c",[
+  "T:Standard vs Sorted vs Hashed, keys, access cost",
+  "T:APPEND, INSERT, COLLECT, READ, MODIFY, DELETE, SORT",
+  "T:Work area vs field symbol vs reference",
+  "T:Control break: AT FIRST / NEW / END OF / LAST, SUM",
+  "T:Table expressions, line_exists, secondary keys",
+  "P:Dept-wise salary total (control break + COLLECT)",
+  "P:1 lakh rows: standard vs hashed READ timing"]],
+ [5,"Open SQL & LUW","Module 4","c",[
+  "T:SELECT SINGLE, INTO TABLE, UP TO, WHERE IN, aggregates, GROUP BY",
+  "T:INNER / LEFT OUTER JOIN, FOR ALL ENTRIES rules",
+  "T:New SQL syntax: @, CASE, CAST, SQL functions, subqueries",
+  "T:INSERT / UPDATE / MODIFY / DELETE, COMMIT / ROLLBACK",
+  "T:SAP LUW vs DB LUW, IN UPDATE TASK, V1/V2, SM13",
+  "T:Key tables: VBAK/VBAP, EKKO/EKPO, MATDOC, BKPF, ACDOCA, BUT000",
+  "P:Orders + items + customer: JOIN vs FAE compare",
+  "P:Update function module banao aur test karo"]],
+ [6,"Modularization & Debugging","Modules 5–6","c",[
+  "T:Includes, macros, FORM/PERFORM (legacy), pass by value vs reference",
+  "T:Function groups & modules: normal, RFC, update",
+  "T:Debugger: session vs external breakpoints, watchpoints, F5–F8",
+  "T:ST22, SM21, SLG1, SU53; background job debugging",
+  "T:SLIN, Code Inspector, ATC, where-used list",
+  "P:FM with exceptions; RFC-enabled FM",
+  "P:Dump banao aur ST22 mein analyse karo",
+  "P:VA03 debug karke call stack samjho"]],
+ [7,"Reports, Selection Screen & ALV","Module 7","c",[
+  "T:Report events sequence (INITIALIZATION → START-OF-SELECTION …)",
+  "T:PARAMETERS, SELECT-OPTIONS (SIGN/OPTION/LOW/HIGH), blocks, MODIF ID",
+  "T:Classical & interactive reports (HIDE, sy-lsind)",
+  "T:ALV: REUSE_ALV, CL_GUI_ALV_GRID, CL_SALV_TABLE, ALV IDA",
+  "T:File handling: GUI_UPLOAD/DOWNLOAD, OPEN DATASET, AL11",
+  "P:Sales order report → SALV with hotspot → VA03",
+  "P:Editable ALV (CL_GUI_ALV_GRID)",
+  "P:Excel/CSV upload → ALV; variant + SM36 background job"]],
+ [8,"Object-Oriented ABAP I","Module 8","c",[
+  "T:Class definition/implementation, local vs global (SE24)",
+  "T:Visibility, instance vs static, constructor vs class_constructor",
+  "T:Inheritance, REDEFINITION, super, abstract, final",
+  "T:Interfaces, aliases, polymorphism, up/down casting",
+  "P:Bank account class",
+  "P:Shape interface → circle, rectangle"]],
+ [9,"OOP II + Modern Syntax","Modules 8–9","c",[
+  "T:Events (RAISE EVENT, SET HANDLER), class-based exceptions",
+  "T:Singleton, factory, MVC; ABAP Unit; RTTS & dynamic programming",
+  "T:Inline DATA(), VALUE, NEW, CONV, CAST, COND, SWITCH",
+  "T:CORRESPONDING, FOR, REDUCE, FILTER, LET, GROUP BY loops",
+  "P:Singleton logger + ABAP Unit tests",
+  "P:Purane programs ko modern syntax mein rewrite"]],
+ [10,"Dialog Programming (Module Pool)","Module 10","r",[
+  "T:Screens (SE51), flow logic PBO / PAI / POV / POH",
+  "T:GUI status (SE41), OK_CODE, AT EXIT-COMMAND, CHAIN-ENDCHAIN",
+  "T:CALL SCREEN vs SET SCREEN vs LEAVE TO SCREEN",
+  "T:Table control, tabstrip, subscreens",
+  "P:Employee maintenance transaction + Z t-code",
+  "P:Table control + tabstrip demo"]],
+ [11,"Enhancements","Module 11","r",[
+  "T:Modification vs enhancement",
+  "T:User exits (MV45AFZZ), customer exits (SMOD / CMOD)",
+  "T:Classic vs kernel BAdI, enhancement spots, finding BAdIs",
+  "T:Implicit / explicit enhancement points & sections, BTE (FIBF)",
+  "T:S/4 key user extensibility (Custom Fields / Custom Logic)",
+  "P:Sales order save validation (user exit)",
+  "P:BAdI ME_PROCESS_PO_CUST implement",
+  "P:Apna enhancement spot + BAdI banao"]],
+ [12,"Forms","Module 12","r",[
+  "T:Driver program, output types (NACE), S/4 BRF+ output management",
+  "T:SmartForms: interface, windows (MAIN etc.), nodes, styles",
+  "T:Adobe Forms: interface, context, layout, ADS, FP_JOB_OPEN",
+  "T:Email with CL_BCS, PDF conversion",
+  "P:SmartForm invoice (header, items, totals, logo)",
+  "P:Same invoice in Adobe Forms",
+  "P:PDF email karo"]],
+ [13,"Interfaces: RFC, BAPI, IDoc, REST","Module 13","r",[
+  "T:RFC types (sRFC, aRFC, tRFC, qRFC, bgRFC), SM59",
+  "T:BAPI rules: RETURN table, X-structures, BAPI_TRANSACTION_COMMIT",
+  "T:ALE/IDoc: control/data/status records, status codes 03/51/53",
+  "T:IDoc config: WE31, WE30, WE81/82, BD54, WE21, WE20, BD64",
+  "T:SOAP (SOAMANAGER, SPROXY), REST client, JSON (/ui2/cl_json)",
+  "P:BAPI se sales order create + error handling",
+  "P:Custom outbound IDoc; WE19 test, BD87 reprocess",
+  "P:Public REST API call → ALV"]],
+ [14,"Migration, Auth, Jobs, Workflow","Module 14","r",[
+  "T:BDC: SHDB, call transaction vs session (SM35), modes",
+  "T:S/4 Migration Cockpit, LTMOM",
+  "T:PFCG, authorization objects, AUTHORITY-CHECK, SU53",
+  "T:SM36/SM37, SUBMIT AND RETURN, parallel processing",
+  "T:Workflow basics (SWDD, SWI1), flexible workflow",
+  "T:SNRO number ranges, SLG1 logs, READ_TEXT, change documents",
+  "P:BDC upload (dono methods)",
+  "P:Custom auth object + check in report",
+  "P:Application log + number range"]],
+ [15,"S/4HANA for ABAP Developers","Module 15","s",[
+  "T:Simplifications: ACDOCA, BP/CVI, MATDOC, removed index tables",
+  "T:Compatibility views, MATNR 40-char impact",
+  "T:On-prem vs Private vs Public cloud; Greenfield / Brownfield / Selective",
+  "T:Custom code migration: SCMON, ATC S4HANA_READINESS, quick fixes",
+  "T:VDM (I_, C_, R_), released APIs, SAP Activate phases",
+  "P:ACDOCA, MATDOC, BUT000 explore",
+  "P:Old report pe ATC S/4 readiness check"]],
+ [16,"SAP HANA & Code Pushdown","Module 16","s",[
+  "T:In-memory, column vs row store, compression, delta merge",
+  "T:Code-to-data paradigm, top-down vs bottom-up",
+  "T:HANA-optimized ABAP rules",
+  "T:ADT shortcuts, console class (IF_OO_ADT_CLASSRUN)",
+  "P:Loop-based SUM → SQL GROUP BY, runtime compare"]],
+ [17,"CDS Views I","Module 17","s",[
+  "T:DDIC-based CDS vs CDS view entity",
+  "T:Syntax: CASE, CAST, functions, session variables, parameters",
+  "T:Joins, aggregation, UNION",
+  "T:Associations, cardinality, path expressions, exposed associations",
+  "P:ZI_SalesOrder + ZI_SalesOrderItem with association",
+  "P:Parameterized + aggregation views"]],
+ [18,"CDS Views II","Module 17","s",[
+  "T:Annotations: Semantics, ObjectModel, VDM, Analytics, Consumption",
+  "T:Metadata extensions (DDLX)",
+  "T:Access control (DCL) with pfcg_auth",
+  "T:VDM layering, extend view, table functions, CDS test doubles",
+  "P:DCL on sales org",
+  "P:Consumption view + UI annotations",
+  "P:CDS consume in ABAP → ALV IDA"]],
+ [19,"AMDP & Performance","Module 18","s",[
+  "T:AMDP: IF_AMDP_MARKER_HDB, SQLScript, USING, client handling",
+  "T:AMDP table functions, AMDP debugging",
+  "T:ST05, SAT, ST12, SQLM/SWLT, ATC, PlanViz",
+  "T:Fixes: nested selects, parallel cursor, hashed reads",
+  "P:AMDP procedure + CDS table function",
+  "P:Slow report → trace → fix"]],
+ [20,"OData & SAP Gateway","Module 19","m",[
+  "T:OData: service doc, $metadata, entity type/set, navigation",
+  "T:Query options $filter $select $expand $top $skip $orderby",
+  "T:$batch, deep insert, ETag, CSRF token, V2 vs V4",
+  "T:SEGW: MPC/DPC, _EXT, CRUD method redefinition",
+  "T:/IWFND/MAINT_SERVICE, GW_CLIENT, error logs",
+  "P:ZEMPLOYEE CRUD service",
+  "P:Header-item $expand + deep insert",
+  "P:Postman se test (CSRF)"]],
+ [21,"RAP I: Managed Basics","Module 20","m",[
+  "T:RAP layers: data model, behavior, service, consumption",
+  "T:Managed vs unmanaged vs managed with unmanaged/additional save",
+  "T:Root/child CDS, composition, association to parent",
+  "T:BDEF basics: lock, authorization, etag, field control, mapping",
+  "P:Travel tables + root/child CDS",
+  "P:Managed BDEF + service binding + preview"]],
+ [22,"RAP II: Behavior Logic","Module 20","m",[
+  "T:Determinations (on modify / on save)",
+  "T:Validations, messages (%msg, %element)",
+  "T:Actions (instance, static, factory, parameters)",
+  "T:Feature control (static / instance), side effects",
+  "T:Projection views + projection BDEF + DDLX",
+  "P:Validations, determination, accept/reject actions",
+  "P:Value helps + proper list report / object page"]],
+ [23,"RAP III: Draft, EML, Unmanaged","Module 20","m",[
+  "T:Draft: draft tables, total etag, Edit/Activate/Discard/Resume/Prepare",
+  "T:EML: READ / MODIFY / COMMIT ENTITIES, IN LOCAL MODE",
+  "T:%tky, %cid, %cid_ref, %control; FAILED / REPORTED / MAPPED",
+  "T:Runtime phases: interaction, early save, late save",
+  "T:Unmanaged: transactional buffer, saver class",
+  "T:Custom / abstract entities, virtual elements, business events",
+  "P:Draft enable Travel app",
+  "P:Console class se EML",
+  "P:Unmanaged scenario with existing FM/BAPI"]],
+ [24,"Fiori Elements & Launchpad","Module 21","m",[
+  "T:Floorplans: List Report/Object Page, Worklist, ALP, OVP",
+  "T:UI annotations: headerInfo, facet, lineItem, selectionField, criticality",
+  "T:Flexible programming model, adaptation projects",
+  "T:BAS / VS Code Fiori tools, generator, deploy",
+  "T:FLP: catalogs, roles, spaces/pages, tiles, target mappings",
+  "P:Travel app UI polish",
+  "P:Generate + deploy app, FLP tile + role"]],
+ [25,"SAPUI5 Basics","Module 22","m",[
+  "T:MVC, Component.js, manifest.json",
+  "T:Models: JSON, OData V2/V4, i18n; binding types & modes",
+  "T:Routing, fragments, formatters, filters",
+  "T:CRUD from UI5, message handling, UI5 tooling",
+  "P:Freestyle list → detail app on SEGW service",
+  "P:Create dialog (fragment) + deploy + FLP tile"]],
+ [26,"ABAP Cloud, Clean Core & BTP","Module 23","x",[
+  "T:Clean core; key user vs developer vs side-by-side extensibility",
+  "T:3-tier model / clean core levels",
+  "T:ABAP Cloud restrictions, released APIs (C1)",
+  "T:XCO, application jobs & logs, communication arrangements",
+  "T:BTP: accounts, CF, ABAP environment, Cloud Connector, Integration Suite",
+  "T:CAP (Node.js) basics, Joule / ABAP AI",
+  "P:Released API read in ABAP Cloud",
+  "P:Application job + application log",
+  "P:CAP bookshop app → Fiori Elements → BTP"]],
+ [27,"Real Projects & Portfolio","Module 24","x",[
+  "T:Project types, FS → TS → dev → SIT/UAT → PRD lifecycle",
+  "T:O2C, P2P, R2R flows with tables",
+  "T:Clean ABAP, naming, no hardcoding",
+  "P:Ek project ka FS + TS likho",
+  "P:4+ portfolio projects complete",
+  "P:abapGit se GitHub push",
+  "P:O2C (VA01→VL01N→VF01) aur P2P (ME21N→MIGO→MIRO) khud karo"]],
+ [28,"Certification & Interviews","Module 25","x",[
+  "T:Back-End Developer – ABAP Cloud syllabus revise",
+  "P:Saare module interview questions bina dekhe answer",
+  "P:Scenario questions practice (slow report, IDoc 51, dump, BAdI)",
+  "P:RICEFW ke har letter ka apna example",
+  "P:Resume update with S/4 keywords",
+  "P:Certification exam do"]]
+];
+
+// ids
+const ALL = [];
+W.forEach(w => w[4].forEach((t,i) => ALL.push("w"+w[0]+"-"+i)));
+
+let done = {};
+let showPending = false;
+const LS_KEY = "abap-tracker-done-v1";
+
+function lsRead(){ try{ const v = localStorage.getItem(LS_KEY); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
+function lsWrite(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(done)); }catch(e){} }
+
+const $ = id => document.getElementById(id);
+const phasesEl = $("phases");
+
+function el(tag, attrs, kids){
+  const n = document.createElement(tag);
+  if(attrs) for(const k in attrs){ if(k==="text") n.textContent = attrs[k]; else n.setAttribute(k, attrs[k]); }
+  (kids||[]).forEach(c => c && n.appendChild(c));
+  return n;
+}
+
+function build(){
+  PHASES.forEach(([key,name]) => {
+    const weeks = W.filter(w => w[3]===key);
+    const range = "Week " + weeks[0][0] + "–" + weeks[weeks.length-1][0];
+    const stat = el("span",{class:"stat","data-phase-stat":key});
+    const sec = el("section",{class:"phase"},[
+      el("div",{class:"phase-head"},[ el("h2",{text:name+" · "+range}), stat ]),
+      el("div",{class:"weeks"})
+    ]);
+    const list = sec.querySelector(".weeks");
+    weeks.forEach(w => {
+      const d = el("details",{class:"week",id:"week-"+w[0],"data-week":w[0]});
+      const sum = el("summary",null,[
+        el("span",{class:"wk",text:"W"+String(w[0]).padStart(2,"0")}),
+        el("div",{class:"wtitle"},[ el("strong",{text:w[1]}), el("span",{text:w[2]}) ]),
+        el("span",{class:"ring"})
+      ]);
+      d.appendChild(sum);
+      const ul = el("ul",{class:"tasks"});
+      w[4].forEach((t,i) => {
+        const id = "w"+w[0]+"-"+i;
+        const isP = t.startsWith("P:");
+        const cb = el("input",{type:"checkbox",id:"cb-"+id,"data-id":id});
+        const span = el("span",null,[ el("span",{class:"tag"+(isP?" p":""),text:isP?"Practice":"Topic"}), document.createTextNode(t.slice(2)) ]);
+        const li = el("li",{"data-id":id},[ el("label",{for:"cb-"+id},[cb,span]) ]);
+        ul.appendChild(li);
+      });
+      d.appendChild(ul);
+      d.appendChild(el("p",{class:"empty-note",hidden:"",text:"Is week ka sab done ✓"}));
+      list.appendChild(d);
+    });
+    phasesEl.appendChild(sec);
+  });
+}
+
+let firstRender = true;
+function render(){
+  const total = ALL.length;
+  const n = ALL.filter(id => done[id]).length;
+  $("overallStat").innerHTML = "";
+  const b = document.createElement("b"); b.textContent = n;
+  $("overallStat").append(b, document.createTextNode(" / "+total+" done · "+Math.round(n*100/total)+"%"));
+  $("overallBar").style.width = (n*100/total)+"%";
+
+  let currentWeek = null;
+  W.forEach(w => {
+    const ids = w[4].map((t,i) => "w"+w[0]+"-"+i);
+    const c = ids.filter(id => done[id]).length;
+    const d = $("week-"+w[0]);
+    const complete = c === ids.length;
+    if(!complete && currentWeek === null) currentWeek = w[0];
+    d.dataset.done = complete;
+    d.querySelector(".ring").textContent = c+"/"+ids.length;
+    ids.forEach(id => {
+      const cb = $("cb-"+id);
+      cb.checked = !!done[id];
+      cb.closest("li").hidden = showPending && !!done[id];
+    });
+    d.querySelector(".empty-note").hidden = !(showPending && complete);
+  });
+  document.querySelectorAll("details.week").forEach(d => {
+    const isCur = Number(d.dataset.week) === currentWeek;
+    d.dataset.current = isCur;
+    const s = d.querySelector(".wtitle strong");
+    const old = s.querySelector(".now"); if(old) old.remove();
+    if(isCur){ s.appendChild(el("span",{class:"now",text:"Abhi yahan"})); }
+  });
+  if(firstRender && currentWeek !== null){ $("week-"+currentWeek).open = true; firstRender = false; }
+
+  PHASES.forEach(([key]) => {
+    const ids = W.filter(w=>w[3]===key).flatMap(w => w[4].map((t,i)=>"w"+w[0]+"-"+i));
+    const c = ids.filter(id=>done[id]).length;
+    document.querySelector('[data-phase-stat="'+key+'"]').textContent = c+"/"+ids.length;
+  });
+}
+
+// ---- persistence ----
+let docRef = null, mode = "local", dirty = false, writing = false, timer = null;
+function setSave(s, text){ $("saveState").dataset.s = s; $("saveText").textContent = text; }
+
+function scheduleSave(){
+  lsWrite();
+  if(!docRef){ setSave("local","Sirf is browser mein saved"); return; }
+  dirty = true;
+  setSave("saving","Saving…");
+  clearTimeout(timer);
+  timer = setTimeout(flush, 600);
+}
+async function flush(){
+  if(!docRef || writing || !dirty) return;
+  writing = true; dirty = false;
+  try{
+    await docRef.set({ done: Object.assign({}, done), updatedAt: new Date().toISOString() });
+    setSave("cloud","Aapke account mein saved");
+  }catch(e){
+    if(e && e.code === "unavailable"){ dirty = true; setTimeout(flush, 1500 + Math.random()*1000); }
+    else { docRef = null; setSave("local","Sirf is browser mein saved"); }
+  }finally{
+    writing = false;
+    if(dirty) flush();
+  }
+}
+
+phasesEl.addEventListener("change", e => {
+  const id = e.target.dataset && e.target.dataset.id;
+  if(!id) return;
+  if(e.target.checked) done[id] = true; else delete done[id];
+  render();
+  scheduleSave();
+});
+
+$("btnPending").addEventListener("click", e => {
+  showPending = !showPending;
+  e.currentTarget.setAttribute("aria-pressed", showPending);
+  render();
+});
+$("btnExpand").addEventListener("click", () => document.querySelectorAll("details.week").forEach(d => d.open = true));
+$("btnCollapse").addEventListener("click", () => document.querySelectorAll("details.week").forEach(d => d.open = false));
+
+const resetBox = $("resetBox");
+function showResetButton(){
+  resetBox.replaceChildren(el("button",{class:"chip",id:"btnReset",text:"Progress reset karo"}));
+  $("btnReset").addEventListener("click", askReset);
+}
+function askReset(){
+  const yes = el("button",{class:"chip",text:"Haan, sab clear karo"});
+  const no = el("button",{class:"chip",text:"Cancel"});
+  yes.addEventListener("click", () => { done = {}; render(); scheduleSave(); showResetButton(); });
+  no.addEventListener("click", showResetButton);
+  resetBox.replaceChildren(el("span",{text:"Pakka?"}), yes, no);
+}
+$("btnReset").addEventListener("click", askReset);
+
+// boot
+build();
+done = lsRead() || {};
+render();
+setSave("init","Connecting…");
+
+(async () => {
+  try{
+    if(!window.claude || !window.claude.use){ setSave("local","Sirf is browser mein saved"); return; }
+    const [db, user] = await Promise.all([ claude.use("db"), claude.use("user") ]);
+    const uid = user ? await user.id() : null;
+    if(!db || !uid){ setSave("local","Sirf is browser mein saved (sign in karke account mein save hoga)"); return; }
+    docRef = db.doc("data/users/" + uid + "/progress");
+    let gotServer = false;
+    const t = setTimeout(() => { if(!gotServer) setSave("local","Account se connect nahi ho pa raha, browser mein save ho raha hai"); }, 10000);
+    docRef.onSnapshot(snap => {
+      if(!snap.metadata.fromCache){ gotServer = true; clearTimeout(t); }
+      if(snap.metadata.hasPendingWrites || dirty || writing) return;
+      if(snap.exists){
+        const d = snap.data();
+        done = Object.assign({}, (d && d.done) || {});
+        lsWrite(); render();
+        setSave("cloud","Aapke account mein saved");
+      } else if(gotServer){
+        // first time: move any browser-only progress into the account
+        if(Object.keys(done).length){ dirty = true; flush(); }
+        else setSave("cloud","Aapke account mein saved");
+      }
+    }, err => {
+      clearTimeout(t); docRef = null;
+      setSave("local","Sirf is browser mein saved");
+    });
+  }catch(e){ setSave("local","Sirf is browser mein saved"); }
+})();
+})();
+</script>

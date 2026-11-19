@@ -1,1 +1,979 @@
-hii
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data Scientist Roadmap Tracker</title>
+<meta name="description" content="Zero se job-ready Data Scientist: Python, Math, ML, Deep Learning, CV, NLP, Generative AI, Agentic AI, MLOps aur interview prep ka complete checklist tracker.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky progress header → phase map (12 tiles) → phase sections with collapsible module cards and checklists */
+:root{
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaeeec; --line:#d5dcd8;
+  --fg:#14201b; --muted:#56655e; --accent:#0f7a5c; --accent-ink:#ffffff; --accent-soft:#d6efe6;
+  --done:#0f7a5c; --practice:#b4570c; --project:#6a3fb5;
+  --f-display:"Sora",system-ui,sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1311; --surface:#121b18; --surface-2:#18241f; --line:#26352f;
+  --fg:#e2ece7; --muted:#90a39a; --accent:#3fc79a; --accent-ink:#06130e; --accent-soft:#143328;
+  --done:#3fc79a; --practice:#f0a05a; --project:#b495f0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1311; --surface:#121b18; --surface-2:#18241f; --line:#26352f;
+  --fg:#e2ece7; --muted:#90a39a; --accent:#3fc79a; --accent-ink:#06130e; --accent-soft:#143328;
+  --done:#3fc79a; --practice:#f0a05a; --project:#b495f0; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+header.top .wrap{padding-block:12px;display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:center}
+.donut{grid-row:span 2;width:64px;height:64px;position:relative}
+.donut svg{width:64px;height:64px;transform:rotate(-90deg)}
+.donut circle{fill:none;stroke-width:7}
+.donut .trk{stroke:var(--surface-2)}
+.donut .val{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .4s}
+.donut b{position:absolute;inset:0;display:grid;place-items:center;font:700 .95rem var(--f-display);font-variant-numeric:tabular-nums}
+h1{font:700 1.2rem/1.2 var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{font-size:.82rem;color:var(--muted);font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.toolbar{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.search{flex:1 1 200px;min-width:0;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:6px 12px;font-size:.8rem;font-weight:500;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.chip{border:1px solid var(--line);background:var(--surface);padding:6px 12px;border-radius:999px;font-size:.8rem;font-weight:500;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+
+/* hero */
+.hero{padding-block:28px 8px}
+.hero h2{font:800 clamp(1.6rem,4.5vw,2.4rem)/1.1 var(--f-display);margin:0 0 10px;letter-spacing:-.02em;text-wrap:balance}
+.hero h2 em{font-style:normal;color:var(--accent)}
+.hero p{margin:0;color:var(--muted);max-width:65ch}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+
+/* phase map */
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:10px;margin-block:22px 8px}
+.tile{display:grid;gap:8px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;cursor:pointer;position:relative;overflow:hidden}
+.tile:hover{border-color:var(--hue)}
+.tile .n{font:600 .7rem var(--f-mono);color:var(--hue);letter-spacing:.06em;text-transform:uppercase}
+.tile .t{font:600 .95rem/1.25 var(--f-display)}
+.tile .meta{display:flex;justify-content:space-between;font:.75rem var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.mini{height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.mini i{display:block;height:100%;background:var(--hue);width:0;transition:width .4s}
+.tile[data-done="true"]::after{content:"✓";position:absolute;top:10px;right:12px;font-weight:700;color:var(--hue)}
+
+/* phases */
+.phase{margin-top:44px;scroll-margin-top:150px}
+.phase-head{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:end;padding-bottom:10px;border-bottom:3px solid var(--hue);margin-bottom:14px}
+.phase-num{font:800 2.6rem/0.9 var(--f-display);color:var(--hue);font-variant-numeric:tabular-nums}
+.phase-head h3{font:700 1.3rem/1.2 var(--f-display);margin:0;text-wrap:balance}
+.phase-head .why{font-size:.84rem;color:var(--muted);margin-top:2px}
+.phase-head .pstat{font:.8rem var(--f-mono);color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.phase-head .pstat b{display:block;font:700 1.1rem var(--f-display);color:var(--fg)}
+.mods{display:grid;gap:10px}
+details.mod{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+details.mod[data-done="true"]{border-color:var(--hue)}
+details.mod summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+details.mod summary::-webkit-details-marker{display:none}
+.mtitle{min-width:0;display:flex;align-items:center;gap:10px}
+.mtitle .caret{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .2s;flex:none}
+details[open] .mtitle .caret{transform:rotate(45deg)}
+.mtitle strong{font-weight:600}
+.mcount{display:flex;align-items:center;gap:10px;font:.78rem var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.mbar{width:70px;height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.mbar i{display:block;height:100%;background:var(--hue);width:0}
+ul.items{list-style:none;margin:0;padding:0 10px 10px;display:grid;gap:1px}
+ul.items label{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;padding:7px 8px;border-radius:7px;cursor:pointer}
+ul.items label:hover{background:var(--surface-2)}
+ul.items input{width:17px;height:17px;margin:2px 0 0;accent-color:var(--hue)}
+ul.items input:checked + .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.txt{min-width:0;overflow-wrap:anywhere}
+.badge{display:inline-block;font:600 .64rem var(--f-body);letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:4px;margin-right:6px;vertical-align:1px}
+.badge.p{color:var(--practice);border:1px solid var(--practice)}
+.badge.j{color:var(--project);border:1px solid var(--project)}
+mark{background:var(--accent-soft);color:inherit;border-radius:3px;padding:0 2px}
+.nores{text-align:center;color:var(--muted);padding:40px 0}
+
+footer{margin-top:56px;padding-block:20px 48px;border-top:1px solid var(--line);color:var(--muted);font-size:.82rem;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+footer .sp{flex:1}
+.note{font-size:.8rem;color:var(--muted)}
+
+@media (max-width:560px){
+  header.top .wrap{grid-template-columns:auto 1fr}
+  .donut,.donut svg{width:52px;height:52px}
+  h1{font-size:1.02rem}
+  .phase-head{grid-template-columns:auto 1fr}
+  .phase-head .pstat{grid-column:1/-1;text-align:left}
+  .phase-num{font-size:2rem}
+  .mbar{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="donut" aria-hidden="true">
+      <svg viewBox="0 0 64 64"><circle class="trk" cx="32" cy="32" r="27"/><circle class="val" id="donutVal" cx="32" cy="32" r="27"/></svg>
+      <b id="pct">0%</b>
+    </div>
+    <h1>Data Scientist Roadmap Tracker</h1>
+    <div class="sub" id="subStat">0 / 0 done</div>
+    <div class="toolbar">
+      <input class="search" id="q" type="search" placeholder="Topic dhoondo… (e.g. RAG, XGBoost, YOLO)" aria-label="Search topics">
+      <div class="seg" role="group" aria-label="Filter">
+        <button id="f-all" aria-pressed="true">Sab</button>
+        <button id="f-todo" aria-pressed="false">Pending</button>
+        <button id="f-done" aria-pressed="false">Done</button>
+      </div>
+      <button class="chip" id="openAll">Sab kholo</button>
+      <button class="chip" id="closeAll">Sab band</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h2>Zero se <em>job-ready Data Scientist</em> tak, ek bhi topic chhoote bina.</h2>
+    <p>12 phases, ~60 weeks (roz 2–3 ghante). Order mein chalo: har phase agle ki neev hai. Har module mein topics, practice aur projects hain. Tick karo, progress is browser mein save hoti rahegi.</p>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--accent)"></i>Topic</span>
+      <span><span class="badge p">Practice</span>Khud code karo</span>
+      <span><span class="badge j">Project</span>Portfolio mein daalo</span>
+    </div>
+  </section>
+
+  <nav class="map" id="map" aria-label="Phases"></nav>
+  <div id="phases"></div>
+  <p class="nores" id="nores" hidden>Koi topic match nahi hua.</p>
+
+  <footer>
+    <span>Progress isi browser mein save hoti hai. Dusre device pe le jaane ke liye Export / Import use karo.</span>
+    <span class="sp"></span>
+    <button class="chip" id="exportBtn">Export progress</button>
+    <label class="chip" for="importFile" style="display:inline-block">Import progress</label>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+    <span id="resetBox"><button class="chip" id="resetBtn">Reset</button></span>
+    <span class="note" id="ioNote" role="status"></span>
+  </footer>
+</main>
+
+<script>
+(function(){
+/* Items: plain = Topic, "P:" = Practice, "J:" = Project */
+const PHASES = [
+{ name:"Foundations: Python, Tools & Math", weeks:"Week 1–6", hue:["#0f7a5c","#3fc79a"],
+  why:"Har cheez ki neev. Yahan kamzor raha toh aage sab mushkil lagega.",
+  mods:[
+  ["Python Basics",[
+    "Syntax, variables, data types (int, float, str, bool, None)",
+    "Operators, if/elif/else, for & while loops, break/continue",
+    "Functions, default args, *args / **kwargs, lambda, scope",
+    "Lists, tuples, dicts, sets aur unke methods",
+    "List / dict / set comprehensions",
+    "Strings, slicing, f-strings, string methods",
+    "File I/O (txt, csv, json), with statement",
+    "Exceptions: try/except/finally, custom exceptions",
+    "Modules, packages, imports, __name__ == '__main__'",
+    "Virtual environments (venv / conda / uv), pip, requirements.txt",
+    "P:50 easy problems HackerRank / LeetCode pe solve karo"]],
+  ["Python Intermediate",[
+    "OOP: classes, objects, __init__, inheritance, polymorphism",
+    "Dunder methods (__str__, __repr__, __len__, __eq__)",
+    "Iterators, generators, yield",
+    "Decorators aur context managers",
+    "Type hints, dataclasses, Pydantic basics",
+    "Logging aur debugging (pdb, VS Code debugger)",
+    "Unit testing with pytest",
+    "Regular expressions (re)",
+    "datetime, collections (Counter, defaultdict, deque), itertools",
+    "Concurrency basics: threading, multiprocessing, asyncio",
+    "P:Ek CLI app banao (expense tracker) with OOP + tests"]],
+  ["Developer Tools",[
+    "Git: init, add, commit, branch, merge, rebase basics, .gitignore",
+    "GitHub: repos, pull requests, README, issues",
+    "Linux / terminal basics: navigation, files, permissions, pipes",
+    "Jupyter Notebook / JupyterLab, VS Code setup",
+    "Google Colab aur Kaggle notebooks (free GPU)",
+    "Markdown for documentation",
+    "Code quality: PEP 8, ruff / black, pre-commit",
+    "P:Saara practice code GitHub pe push karna shuru karo"]],
+  ["Linear Algebra",[
+    "Scalars, vectors, matrices, tensors",
+    "Vector operations, dot product, norms (L1, L2)",
+    "Matrix multiplication, transpose, identity, inverse",
+    "Determinant, rank, linear independence, span, basis",
+    "Eigenvalues aur eigenvectors",
+    "Matrix decompositions: SVD, eigendecomposition",
+    "Projections, orthogonality (PCA ke liye)",
+    "P:Saare operations NumPy mein implement karo"]],
+  ["Calculus & Optimization",[
+    "Functions, limits, derivatives",
+    "Partial derivatives, chain rule (backprop ki jaan)",
+    "Gradient, Jacobian, Hessian",
+    "Gradient descent, learning rate ka role",
+    "SGD, mini-batch, momentum ka intuition",
+    "Convex vs non-convex functions, local vs global minima",
+    "Integrals basics (probability ke liye)",
+    "P:Linear regression gradient descent se scratch se likho"]],
+  ["Probability",[
+    "Sample space, events, probability rules",
+    "Conditional probability aur Bayes theorem",
+    "Random variables, PMF, PDF, CDF",
+    "Distributions: Bernoulli, Binomial, Poisson, Uniform, Normal, Exponential",
+    "Expectation, variance, covariance, correlation",
+    "Joint, marginal distributions, independence",
+    "Law of Large Numbers, Central Limit Theorem",
+    "Maximum Likelihood Estimation (MLE) aur MAP",
+    "Entropy, cross-entropy, KL divergence (loss functions ke liye)",
+    "P:Distributions ko simulate karke plot karo"]]
+  ]},
+{ name:"Data Handling, SQL & Analysis", weeks:"Week 7–12", hue:["#1f6fb2","#5aa9ec"],
+  why:"Asli kaam ka 60–70% yahi hai: data nikalna, saaf karna, samajhna.",
+  mods:[
+  ["NumPy",[
+    "ndarray, dtypes, shape, reshape, flatten",
+    "Indexing, slicing, fancy indexing, boolean masking",
+    "Broadcasting aur vectorization (loops avoid karo)",
+    "Aggregations aur axis concept",
+    "np.random, np.linalg",
+    "P:Image ko NumPy array ki tarah manipulate karo"]],
+  ["Pandas",[
+    "Series, DataFrame, index",
+    "CSV, Excel, JSON, Parquet, SQL se read/write",
+    "Selection: loc, iloc, query, filtering",
+    "Missing values: isna, fillna, dropna, interpolate",
+    "groupby, agg, transform, pivot_table, crosstab",
+    "merge, join, concat",
+    "apply, map, vectorized string (.str) aur datetime (.dt) ops",
+    "Time series: resample, rolling, shift",
+    "Performance: categoricals, chunking, memory optimization",
+    "Polars intro (fast DataFrames)",
+    "P:Ek messy real dataset poora clean karo"]],
+  ["SQL",[
+    "SELECT, WHERE, ORDER BY, LIMIT, DISTINCT",
+    "Aggregations: COUNT, SUM, AVG, GROUP BY, HAVING",
+    "Joins: INNER, LEFT, RIGHT, FULL, SELF, CROSS",
+    "Subqueries aur CTEs (WITH)",
+    "Window functions: ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, running totals",
+    "CASE WHEN, date functions, string functions, COALESCE",
+    "Indexes, query plans basics, normalization",
+    "Python + SQL: SQLAlchemy, DuckDB, pandas.read_sql",
+    "PostgreSQL install karke use karo",
+    "P:100 SQL problems (LeetCode / StrataScratch / DataLemur)"]],
+  ["Data Visualization",[
+    "Matplotlib: figure, axes, subplots, customization",
+    "Seaborn: distribution, categorical, relational, heatmaps",
+    "Plotly: interactive charts",
+    "Sahi chart chunna (bar vs line vs scatter vs histogram)",
+    "Data storytelling: ek chart, ek message",
+    "BI tools: Power BI ya Tableau basics",
+    "P:Ek dashboard banao (Power BI / Tableau / Streamlit)"]],
+  ["EDA & Data Cleaning",[
+    "Univariate, bivariate, multivariate analysis",
+    "Outlier detection: IQR, z-score, visual methods",
+    "Missing data types (MCAR, MAR, MNAR) aur imputation strategies",
+    "Duplicates, wrong dtypes, inconsistent categories fix karna",
+    "Correlation analysis, multicollinearity (VIF)",
+    "Automated profiling (ydata-profiling, sweetviz)",
+    "J:Kaggle dataset pe complete EDA report notebook"]],
+  ["Data Collection",[
+    "REST APIs with requests, auth, pagination",
+    "JSON parsing aur nested data flatten karna",
+    "Web scraping: BeautifulSoup, Playwright / Selenium",
+    "Scraping ethics, robots.txt, rate limiting",
+    "NoSQL basics: MongoDB",
+    "P:Kisi public API se data collect karke dataset banao"]]
+  ]},
+{ name:"Statistics & Experimentation", weeks:"Week 13–15", hue:["#8a5a00","#e0a63a"],
+  why:"Data scientist aur ML engineer ka asli farak: sahi conclusion nikalna.",
+  mods:[
+  ["Descriptive & Inferential Statistics",[
+    "Mean, median, mode, variance, std, skewness, kurtosis",
+    "Percentiles, quartiles, box plots",
+    "Sampling methods, sampling distribution, standard error",
+    "Confidence intervals",
+    "Hypothesis testing: null/alternative, p-value, significance level",
+    "Type I / Type II errors, statistical power",
+    "t-tests (one, two sample, paired), z-test",
+    "Chi-square test, ANOVA",
+    "Non-parametric tests: Mann-Whitney U, Wilcoxon, Kruskal-Wallis",
+    "Correlation (Pearson, Spearman) vs causation",
+    "Bootstrapping"]],
+  ["Experimentation & Causal Inference",[
+    "A/B test design: hypothesis, metric, sample size, randomization",
+    "Multiple testing correction (Bonferroni, FDR)",
+    "Pitfalls: peeking, novelty effect, sample ratio mismatch",
+    "Causal inference basics: confounders, DAGs",
+    "Difference-in-differences, propensity score matching",
+    "Bayesian statistics basics, Bayesian A/B testing",
+    "P:Ek A/B test dataset analyse karke business recommendation do"]]
+  ]},
+{ name:"Machine Learning", weeks:"Week 16–26", hue:["#b33a3a","#ef7b7b"],
+  why:"Core skill. Interview mein sabse zyada yahin se poochha jaata hai.",
+  mods:[
+  ["ML Fundamentals",[
+    "Types: supervised, unsupervised, semi-supervised, self-supervised, reinforcement",
+    "End-to-end ML workflow (problem → data → model → deploy → monitor)",
+    "Train / validation / test split, k-fold & stratified CV",
+    "Bias-variance tradeoff, overfitting vs underfitting",
+    "Regularization: L1, L2, ElasticNet",
+    "Data leakage aur usse kaise bachein",
+    "scikit-learn API: fit, predict, transform",
+    "Pipelines aur ColumnTransformer"]],
+  ["Feature Engineering",[
+    "Scaling: StandardScaler, MinMax, Robust, log transform",
+    "Encoding: one-hot, ordinal, target, frequency encoding",
+    "Feature creation, interactions, polynomial features, binning",
+    "Date-time, text aur geo features",
+    "Feature selection: filter, wrapper (RFE), embedded methods",
+    "Imbalanced data: class weights, SMOTE, under/over-sampling"]],
+  ["Regression",[
+    "Linear regression: OLS, assumptions, interpretation",
+    "Polynomial regression",
+    "Ridge, Lasso, ElasticNet",
+    "Metrics: MAE, MSE, RMSE, R², adjusted R², MAPE",
+    "Residual analysis",
+    "J:House price prediction (end-to-end)"]],
+  ["Classification",[
+    "Logistic regression, sigmoid, log loss",
+    "K-Nearest Neighbors",
+    "Naive Bayes (Gaussian, Multinomial)",
+    "Support Vector Machines, kernels (linear, RBF)",
+    "Decision trees: Gini, entropy, information gain, pruning",
+    "Confusion matrix, accuracy, precision, recall, F1",
+    "ROC-AUC, PR-AUC, kab kaunsa metric",
+    "Threshold tuning aur probability calibration",
+    "Multi-class aur multi-label classification",
+    "J:Customer churn prediction"]],
+  ["Ensemble Methods",[
+    "Bagging aur Random Forest",
+    "Boosting intuition: AdaBoost, Gradient Boosting",
+    "XGBoost (parameters samjho)",
+    "LightGBM aur CatBoost",
+    "Stacking aur blending",
+    "P:Ek Kaggle tabular competition mein participate karo"]],
+  ["Unsupervised Learning",[
+    "K-Means, elbow method, silhouette score",
+    "Hierarchical clustering, dendrograms",
+    "DBSCAN, HDBSCAN",
+    "Gaussian Mixture Models",
+    "PCA (math + intuition)",
+    "t-SNE aur UMAP (visualization)",
+    "Anomaly detection: Isolation Forest, LOF, One-Class SVM",
+    "Association rules: Apriori (market basket)",
+    "J:Customer segmentation project"]],
+  ["Model Tuning & Explainability",[
+    "GridSearchCV, RandomizedSearchCV",
+    "Bayesian optimization with Optuna",
+    "Learning curves, validation curves",
+    "SHAP values, LIME",
+    "Permutation importance, partial dependence plots",
+    "Fairness aur bias checks",
+    "Model saving: joblib, pickle, ONNX"]],
+  ["Time Series",[
+    "Trend, seasonality, residual; decomposition",
+    "Stationarity, ADF test, differencing",
+    "ACF aur PACF plots",
+    "AR, MA, ARIMA, SARIMA",
+    "Exponential smoothing (Holt-Winters)",
+    "Prophet",
+    "ML for time series: lag/rolling features, time-based CV",
+    "Deep learning for TS (LSTM, TFT) intro",
+    "J:Sales / demand forecasting project"]],
+  ["Recommender Systems",[
+    "Content-based filtering",
+    "Collaborative filtering: user-based, item-based",
+    "Matrix factorization: SVD, ALS",
+    "Metrics: precision@k, recall@k, MAP, NDCG",
+    "Embedding-based retrieval, two-tower models intro",
+    "Cold start problem",
+    "J:Movie / product recommender"]],
+  ["Reinforcement Learning (Intro)",[
+    "Agent, environment, state, action, reward",
+    "Markov Decision Process, policy, value function",
+    "Q-learning, Deep Q-Network (DQN)",
+    "Policy gradients, PPO intuition",
+    "Multi-armed bandits (recommendation / ads mein)",
+    "RLHF ka link (LLMs ke liye)",
+    "P:Gymnasium mein CartPole solve karo"]]
+  ]},
+{ name:"Deep Learning", weeks:"Week 27–32", hue:["#7340c4","#a98bf0"],
+  why:"CV, NLP, GenAI sab isi pe khade hain.",
+  mods:[
+  ["Neural Network Basics",[
+    "Perceptron, multi-layer perceptron",
+    "Activation functions: ReLU, Leaky ReLU, GELU, sigmoid, tanh, softmax",
+    "Loss functions: MSE, cross-entropy, binary cross-entropy",
+    "Forward pass aur backpropagation (computational graph)",
+    "P:NumPy mein scratch se neural network banao"]],
+  ["Training Deep Networks",[
+    "Optimizers: SGD, Momentum, RMSprop, Adam, AdamW",
+    "Learning rate schedules, warmup, cosine decay",
+    "Weight initialization: Xavier, He",
+    "Batch norm, layer norm",
+    "Dropout, weight decay, early stopping, data augmentation",
+    "Vanishing / exploding gradients, gradient clipping, residual connections",
+    "Mixed precision training, GPU / CUDA basics",
+    "Hyperparameter tuning for DL"]],
+  ["PyTorch",[
+    "Tensors, operations, GPU pe le jaana",
+    "Autograd",
+    "nn.Module, layers, custom models",
+    "Dataset aur DataLoader",
+    "Training aur evaluation loop",
+    "Checkpoints save / load",
+    "PyTorch Lightning intro",
+    "TensorFlow / Keras basics (comparison ke liye)",
+    "P:MNIST / Fashion-MNIST classifier PyTorch mein"]],
+  ["Sequence Models",[
+    "RNN aur uski limitations",
+    "LSTM aur GRU",
+    "Seq2seq, encoder-decoder",
+    "Attention mechanism (Bahdanau, Luong)",
+    "P:Character-level text generator LSTM se"]],
+  ["Transformers",[
+    "Self-attention: Query, Key, Value",
+    "Multi-head attention",
+    "Positional encoding (sinusoidal, RoPE)",
+    "Encoder-only vs decoder-only vs encoder-decoder",
+    "'Attention Is All You Need' paper padho",
+    "KV cache, FlashAttention intro",
+    "Mixture of Experts (MoE) intro",
+    "P:Mini GPT scratch se banao (nanoGPT style)"]],
+  ["Generative Models",[
+    "Autoencoders, denoising autoencoders",
+    "Variational Autoencoders (VAE)",
+    "GANs: generator, discriminator, DCGAN, conditional GAN",
+    "Diffusion models basics (DDPM, noise schedule)",
+    "P:GAN ya VAE se images generate karo"]]
+  ]},
+{ name:"Computer Vision", weeks:"Week 33–37", hue:["#0c7c8c","#43c3d4"],
+  why:"Images aur videos se samajh nikalna.",
+  mods:[
+  ["Image Processing",[
+    "Images as arrays, color spaces (RGB, BGR, HSV, grayscale)",
+    "OpenCV: read, resize, crop, rotate",
+    "Filters, blur, edge detection (Canny, Sobel)",
+    "Thresholding, morphology, contours",
+    "Histograms aur equalization",
+    "Augmentation with Albumentations"]],
+  ["CNNs & Image Classification",[
+    "Convolution, kernels, padding, stride, pooling",
+    "Architectures: LeNet, AlexNet, VGG, ResNet, Inception",
+    "Efficient models: MobileNet, EfficientNet, ConvNeXt",
+    "Transfer learning aur fine-tuning",
+    "Grad-CAM se model explain karna",
+    "J:Transfer learning image classifier (deployed)"]],
+  ["Object Detection & Segmentation",[
+    "Bounding boxes, IoU, NMS, mAP",
+    "R-CNN, Fast R-CNN, Faster R-CNN, SSD",
+    "YOLO (Ultralytics latest versions)",
+    "Semantic segmentation: U-Net, DeepLab",
+    "Instance segmentation: Mask R-CNN",
+    "Segment Anything (SAM)",
+    "Annotation tools: Roboflow, CVAT, Label Studio",
+    "J:Custom dataset pe YOLO object detector"]],
+  ["Advanced Computer Vision",[
+    "Vision Transformers (ViT), Swin Transformer",
+    "Self-supervised learning: SimCLR, DINO",
+    "CLIP aur vision-language models",
+    "OCR: Tesseract, PaddleOCR, TrOCR, document AI",
+    "Face detection / recognition",
+    "Pose estimation (MediaPipe, OpenPose)",
+    "Video analysis, object tracking (ByteTrack, DeepSORT)",
+    "3D vision awareness (depth estimation, NeRF / Gaussian splatting)",
+    "J:Invoice / document OCR extraction pipeline"]]
+  ]},
+{ name:"Natural Language Processing", weeks:"Week 38–41", hue:["#a03a78","#e27ab5"],
+  why:"Text samajhna: chatbots, search, LLMs sab ka base.",
+  mods:[
+  ["Text Preprocessing",[
+    "Tokenization, lowercasing, normalization",
+    "Stopwords, stemming, lemmatization",
+    "Regex for text cleaning",
+    "NLTK aur spaCy",
+    "Bag of Words, n-grams, TF-IDF",
+    "P:Spam / sentiment classifier TF-IDF + Logistic Regression"]],
+  ["Word & Sentence Embeddings",[
+    "One-hot vs dense embeddings",
+    "Word2Vec (CBOW, Skip-gram)",
+    "GloVe, FastText",
+    "Sentence embeddings (Sentence-BERT)",
+    "Cosine similarity, semantic search",
+    "P:Semantic search engine on a small corpus"]],
+  ["Classic NLP Tasks",[
+    "Text classification, sentiment analysis",
+    "Named Entity Recognition (NER), POS tagging",
+    "Topic modeling: LDA, BERTopic",
+    "Text similarity, deduplication",
+    "Language detection, spelling correction",
+    "Information extraction"]],
+  ["Transformer-based NLP",[
+    "Subword tokenization: BPE, WordPiece, SentencePiece",
+    "BERT family: BERT, RoBERTa, DistilBERT, DeBERTa",
+    "GPT family (decoder-only, causal LM)",
+    "T5, BART (seq2seq)",
+    "Hugging Face: transformers, datasets, tokenizers, Trainer, pipelines",
+    "Fine-tune BERT for classification aur NER",
+    "Summarization, translation, question answering",
+    "Metrics: BLEU, ROUGE, METEOR, BERTScore, perplexity",
+    "J:Fine-tuned transformer model Hugging Face Spaces pe deploy"]],
+  ["Speech & Audio (Awareness)",[
+    "Audio basics: waveform, spectrogram, MFCC",
+    "Speech-to-text: Whisper",
+    "Text-to-speech models",
+    "P:Whisper se meeting transcript + summary"]]
+  ]},
+{ name:"Generative AI & LLMs", weeks:"Week 42–46", hue:["#c2410c","#fb8a4c"],
+  why:"Aaj ki sabse zyada demand wali skill.",
+  mods:[
+  ["LLM Foundations",[
+    "LLM kaise kaam karta hai: pretraining, next-token prediction",
+    "Tokens, context window, scaling laws",
+    "Instruction tuning, RLHF, DPO, Constitutional AI",
+    "Sampling: temperature, top-p, top-k, max tokens",
+    "Reasoning models aur test-time compute",
+    "Model landscape: Claude, GPT, Gemini, Llama, Mistral, Qwen, DeepSeek",
+    "Open-weight vs closed models, licenses",
+    "Hallucinations aur limitations"]],
+  ["Prompt Engineering",[
+    "Zero-shot, few-shot prompting",
+    "System prompts, clear aur specific instructions",
+    "Chain-of-thought, step-by-step reasoning",
+    "Structured output: JSON, XML tags, schemas",
+    "Prompt templates aur prompt chaining",
+    "Prompt evaluation aur iteration",
+    "Prompt injection awareness"]],
+  ["LLM APIs & Applications",[
+    "LLM APIs (Anthropic, OpenAI, Gemini): messages, roles, streaming",
+    "Tool use / function calling",
+    "Token counting, cost, rate limits, prompt caching",
+    "Multimodal inputs: images, PDFs",
+    "Chat apps with Streamlit / Gradio / Chainlit",
+    "Structured extraction from documents",
+    "P:Apna chatbot banao with memory + streaming"]],
+  ["Embeddings & Vector Databases",[
+    "Embedding models aur unka choice",
+    "Similarity: cosine, dot product, Euclidean",
+    "ANN indexes: HNSW, IVF, product quantization",
+    "Vector DBs: FAISS, Chroma, Qdrant, Pinecone, Weaviate, pgvector",
+    "Metadata filtering, namespaces"]],
+  ["RAG (Retrieval-Augmented Generation)",[
+    "RAG architecture: ingest → chunk → embed → retrieve → generate",
+    "Document parsing: PDF, HTML, tables, scanned docs",
+    "Chunking strategies: fixed, recursive, semantic",
+    "Retrieval: dense, sparse (BM25), hybrid search",
+    "Re-ranking with cross-encoders",
+    "Query rewriting, HyDE, multi-query",
+    "Advanced RAG: contextual retrieval, GraphRAG, agentic RAG",
+    "Citations aur source grounding",
+    "RAG evaluation: faithfulness, answer relevance, context precision/recall (RAGAS)",
+    "J:'Chat with your PDFs' RAG app (deployed)"]],
+  ["Fine-tuning LLMs",[
+    "Kab fine-tune karein vs prompting vs RAG",
+    "Full fine-tuning vs PEFT",
+    "LoRA aur QLoRA",
+    "Dataset preparation, instruction formats, chat templates",
+    "Tools: Hugging Face TRL, PEFT, Unsloth, Axolotl",
+    "Preference tuning: DPO, ORPO",
+    "Knowledge distillation, synthetic data generation",
+    "J:Small open model ko LoRA se apne task pe fine-tune karo"]],
+  ["LLM Serving & Optimization",[
+    "Quantization: INT8, 4-bit, GGUF, AWQ, GPTQ",
+    "Local LLMs: Ollama, llama.cpp, LM Studio",
+    "Serving: vLLM, TGI, batching",
+    "Latency vs throughput, KV cache, speculative decoding",
+    "Cost optimization aur model routing"]],
+  ["LLM Evaluation & Safety",[
+    "Benchmarks (MMLU etc.) aur unki limits",
+    "LLM-as-a-judge evaluation",
+    "Custom eval datasets, regression testing",
+    "Guardrails, output validation, PII handling",
+    "Prompt injection aur jailbreak defense",
+    "Responsible AI, bias, copyright concerns"]],
+  ["Multimodal & Image Generation",[
+    "Vision-language models (image understanding)",
+    "Stable Diffusion, SDXL, Flux: text-to-image",
+    "ControlNet, inpainting, image-to-image",
+    "LoRA / DreamBooth for custom image styles",
+    "Video aur audio generation awareness",
+    "P:Diffusers library se image generation app"]]
+  ]},
+{ name:"Agentic AI", weeks:"Week 47–50", hue:["#0e7490","#38bdf8"],
+  why:"LLMs jo khud plan karke tools chalate hain: next big skill.",
+  mods:[
+  ["Agent Fundamentals",[
+    "Agent kya hai: LLM + tools + loop + memory",
+    "Workflows vs agents: kab agent ki zaroorat nahi",
+    "ReAct pattern (reason + act)",
+    "Planning, reflection, self-critique",
+    "Tool / function design: clear names, schemas, errors",
+    "Memory: short-term (context), long-term (vector / DB)",
+    "Context engineering: kya context mein daalna hai",
+    "P:Bina framework ke simple agent loop scratch se likho"]],
+  ["Agent Frameworks",[
+    "LangChain: models, tools, chains, LCEL",
+    "LangGraph: state graphs, checkpoints, human-in-the-loop",
+    "LlamaIndex: data connectors, query engines, agents",
+    "CrewAI aur AutoGen (multi-agent)",
+    "Claude Agent SDK / OpenAI Agents SDK",
+    "Framework choose karna: trade-offs"]],
+  ["MCP & Tool Ecosystem",[
+    "Model Context Protocol: servers, clients, tools, resources, prompts",
+    "Apna MCP server banao (Python SDK)",
+    "APIs, databases, files ko agent se connect karna",
+    "Code execution sandboxes",
+    "Browser aur computer-use agents",
+    "P:Kisi API ke liye MCP server banao aur Claude se use karo"]],
+  ["Multi-Agent Systems",[
+    "Patterns: prompt chaining, routing, parallelization",
+    "Orchestrator-worker pattern",
+    "Evaluator-optimizer loop",
+    "Agent handoffs, shared state, agent-to-agent (A2A) awareness",
+    "Multi-agent kab useful hai, kab overkill"]],
+  ["Agent Reliability & Production",[
+    "Agent evaluation: task success, trajectory eval",
+    "Observability aur tracing: LangSmith, Langfuse",
+    "Error handling, retries, timeouts, max steps, cost limits",
+    "Safety: permissions, sandboxing, human approval",
+    "Deploying agents: APIs, queues, background jobs",
+    "J:Research agent (web search + summarize + cite)",
+    "J:Data analyst agent (natural language → SQL + Python + charts)",
+    "J:Multi-agent customer support system"]]
+  ]},
+{ name:"MLOps, Deployment & Data Engineering", weeks:"Week 51–55", hue:["#4d5d12","#a3c13a"],
+  why:"Model notebook mein pada rahe toh kisi kaam ka nahi.",
+  mods:[
+  ["Model Serving",[
+    "REST APIs with FastAPI (Flask bhi samjho)",
+    "Demos: Streamlit, Gradio",
+    "Batch vs real-time inference",
+    "Model formats: ONNX, TorchScript",
+    "P:Apna ML model FastAPI endpoint se serve karo"]],
+  ["Docker & Cloud",[
+    "Docker: images, containers, Dockerfile, volumes",
+    "docker-compose (app + DB)",
+    "Cloud basics: AWS (S3, EC2, Lambda, SageMaker)",
+    "GCP Vertex AI / Azure ML awareness",
+    "Easy deploy: Render, Railway, Hugging Face Spaces",
+    "Kubernetes basics (pods, deployments, services)",
+    "P:Dockerized model cloud pe deploy karo"]],
+  ["MLOps Practices",[
+    "Experiment tracking: MLflow, Weights & Biases",
+    "Data aur model versioning: DVC",
+    "Pipelines / orchestration: Airflow, Prefect",
+    "CI/CD for ML: GitHub Actions",
+    "Model registry",
+    "Monitoring: data drift, concept drift, performance (Evidently)",
+    "Deployment strategies: A/B, shadow, canary",
+    "Feature stores (Feast) awareness",
+    "LLMOps: prompt versioning, eval pipelines, tracing",
+    "J:End-to-end MLOps pipeline (train → track → deploy → monitor)"]],
+  ["Data Engineering Basics",[
+    "ETL vs ELT",
+    "Data warehouse vs data lake vs lakehouse",
+    "BigQuery / Snowflake / Redshift basics",
+    "Spark aur PySpark",
+    "dbt basics",
+    "Streaming awareness: Kafka",
+    "File formats: Parquet, Delta Lake, Iceberg"]]
+  ]},
+{ name:"Business Sense, Communication & Ethics", weeks:"Week 56", hue:["#6b4f2a","#c9a46a"],
+  why:"Jo model business ko samjha na sako, wo deploy nahi hota.",
+  mods:[
+  ["Business & Communication",[
+    "Business problem ko DS problem mein convert karna",
+    "KPIs aur success metrics define karna",
+    "Model ka ROI aur business impact",
+    "Domain knowledge: finance, e-commerce, healthcare, marketing",
+    "Non-technical logon ko results samjhana",
+    "Reports, documentation, presentation skills",
+    "Product sense aur metric case studies"]],
+  ["Ethics & Governance",[
+    "Data privacy: GDPR, India DPDP Act",
+    "Bias aur fairness in models",
+    "Explainability requirements",
+    "Model cards aur datasheets",
+    "AI regulation awareness (EU AI Act)"]]
+  ]},
+{ name:"Portfolio, Interviews & Job", weeks:"Week 57–60", hue:["#0f7a5c","#3fc79a"],
+  why:"Seekha hua dikhana aur job crack karna.",
+  mods:[
+  ["Portfolio Projects (minimum 8)",[
+    "J:EDA + interactive dashboard",
+    "J:End-to-end tabular ML project (deployed with API)",
+    "J:Time-series forecasting project",
+    "J:Computer vision project (detection / OCR)",
+    "J:NLP transformer fine-tuning project",
+    "J:RAG application with evaluation",
+    "J:Agentic AI application",
+    "J:MLOps pipeline with monitoring"]],
+  ["Profile Building",[
+    "GitHub clean: har project ka achha README (problem, approach, results, demo)",
+    "Kaggle: competitions, notebooks, discussions",
+    "LinkedIn profile optimize karo, regularly post karo",
+    "Blog / Medium pe 3–5 technical articles",
+    "Portfolio website",
+    "Resume: ATS-friendly, 1 page, numbers ke saath impact"]],
+  ["Interview Preparation",[
+    "Python coding + DSA basics (arrays, hashing, two pointers, sorting)",
+    "SQL interview questions (window functions zaroor)",
+    "Statistics & probability questions",
+    "ML theory questions (bias-variance, regularization, metrics, trees)",
+    "Deep learning, NLP, CV questions",
+    "GenAI / LLM / RAG / agents questions",
+    "ML system design: recommender, fraud detection, search, RAG system",
+    "Case studies aur product sense",
+    "Take-home assignments practice",
+    "Behavioral questions (STAR method)",
+    "P:5 mock interviews do (peers / online platforms)"]],
+  ["Keep Growing",[
+    "Har hafte 1 research paper / blog padho (arXiv, Papers with Code)",
+    "AI newsletters aur communities follow karo",
+    "Open-source projects mein contribute karo",
+    "Hackathons mein participate karo"]]
+  ]}
+];
+
+/* ---------- ids ---------- */
+const ALL = [];
+PHASES.forEach((p,pi) => p.mods.forEach((m,mi) => m[1].forEach((t,ii) => ALL.push(pi+"-"+mi+"-"+ii))));
+
+/* ---------- storage ---------- */
+const KEY = "ds-roadmap-tracker-v1";
+let done = {};
+try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch(e){ done = {}; }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(done)); } catch(e){} }
+
+/* ---------- theme-aware hue ---------- */
+const darkMQ = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+function isDark(){
+  const t = document.documentElement.getAttribute("data-theme");
+  if (t) return t === "dark";
+  return !!(darkMQ && darkMQ.matches);
+}
+function applyHues(){
+  const d = isDark();
+  document.querySelectorAll("[data-pi]").forEach(el => {
+    const p = PHASES[+el.dataset.pi];
+    el.style.setProperty("--hue", d ? p.hue[1] : p.hue[0]);
+  });
+}
+
+/* ---------- build ---------- */
+const $ = id => document.getElementById(id);
+function h(tag, attrs, kids){
+  const n = document.createElement(tag);
+  if (attrs) for (const k in attrs){
+    if (k === "text") n.textContent = attrs[k];
+    else n.setAttribute(k, attrs[k]);
+  }
+  (kids || []).forEach(c => c != null && n.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+  return n;
+}
+const pad = n => String(n).padStart(2,"0");
+
+const map = $("map"), root = $("phases");
+PHASES.forEach((p,pi) => {
+  const count = p.mods.reduce((a,m)=>a+m[1].length,0);
+  // map tile
+  const tile = h("button",{class:"tile","data-pi":pi,type:"button"},[
+    h("span",{class:"n",text:"Phase "+pad(pi+1)+" · "+p.weeks}),
+    h("span",{class:"t",text:p.name}),
+    h("span",{class:"mini"},[h("i",{"data-tile-bar":pi})]),
+    h("span",{class:"meta"},[h("span",{"data-tile-count":pi,text:"0/"+count}), h("span",{"data-tile-pct":pi,text:"0%"})])
+  ]);
+  tile.addEventListener("click", () => {
+    const sec = $("phase-"+pi);
+    sec.querySelector("details.mod").open = true;
+    sec.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+  });
+  map.appendChild(tile);
+
+  // phase section
+  const sec = h("section",{class:"phase",id:"phase-"+pi,"data-pi":pi},[
+    h("div",{class:"phase-head"},[
+      h("div",{class:"phase-num",text:pad(pi+1)}),
+      h("div",null,[ h("h3",{text:p.name}), h("div",{class:"why",text:p.weeks+" · "+p.why}) ]),
+      h("div",{class:"pstat"},[ h("b",{"data-phase-pct":pi,text:"0%"}), h("span",{"data-phase-count":pi,text:"0/"+count}) ])
+    ]),
+    h("div",{class:"mods"})
+  ]);
+  const mods = sec.querySelector(".mods");
+  p.mods.forEach((m,mi) => {
+    const det = h("details",{class:"mod","data-mod":pi+"-"+mi});
+    det.appendChild(h("summary",null,[
+      h("span",{class:"mtitle"},[ h("span",{class:"caret"}), h("strong",{text:m[0]}) ]),
+      h("span",{class:"mcount"},[ h("span",{class:"mbar"},[h("i")]), h("span",{class:"mc"}) ])
+    ]));
+    const ul = h("ul",{class:"items"});
+    m[1].forEach((t,ii) => {
+      const id = pi+"-"+mi+"-"+ii;
+      let kind = "", text = t;
+      if (t.startsWith("P:")) { kind = "p"; text = t.slice(2); }
+      else if (t.startsWith("J:")) { kind = "j"; text = t.slice(2); }
+      const cb = h("input",{type:"checkbox",id:"c"+id,"data-id":id});
+      const txt = h("span",{class:"txt"});
+      if (kind) txt.appendChild(h("span",{class:"badge "+kind,text: kind==="p" ? "Practice" : "Project"}));
+      txt.appendChild(h("span",{class:"label","data-raw":text,text:text}));
+      ul.appendChild(h("li",{"data-id":id,"data-search":(m[0]+" "+text).toLowerCase()},[ h("label",{for:"c"+id},[cb, txt]) ]));
+    });
+    det.appendChild(ul);
+    mods.appendChild(det);
+  });
+  root.appendChild(sec);
+});
+applyHues();
+if (darkMQ && darkMQ.addEventListener) darkMQ.addEventListener("change", applyHues);
+new MutationObserver(applyHues).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+/* ---------- render ---------- */
+const CIRC = 2 * Math.PI * 27;
+const donut = $("donutVal");
+donut.style.strokeDasharray = CIRC;
+
+function render(){
+  const total = ALL.length;
+  const n = ALL.reduce((a,id)=>a+(done[id]?1:0),0);
+  const pct = total ? Math.round(n*100/total) : 0;
+  donut.style.strokeDashoffset = CIRC * (1 - n/total);
+  $("pct").textContent = pct+"%";
+  $("subStat").textContent = n+" / "+total+" done · "+PHASES.length+" phases";
+
+  PHASES.forEach((p,pi) => {
+    let pd = 0, pt = 0;
+    p.mods.forEach((m,mi) => {
+      let md = 0;
+      m[1].forEach((t,ii) => { if (done[pi+"-"+mi+"-"+ii]) md++; });
+      pd += md; pt += m[1].length;
+      const det = document.querySelector('[data-mod="'+pi+"-"+mi+'"]');
+      det.dataset.done = md === m[1].length;
+      det.querySelector(".mc").textContent = md+"/"+m[1].length;
+      det.querySelector(".mbar i").style.width = (md*100/m[1].length)+"%";
+    });
+    const pp = Math.round(pd*100/pt);
+    document.querySelector('[data-tile-bar="'+pi+'"]').style.width = pp+"%";
+    document.querySelector('[data-tile-count="'+pi+'"]').textContent = pd+"/"+pt;
+    document.querySelector('[data-tile-pct="'+pi+'"]').textContent = pp+"%";
+    document.querySelector('.tile[data-pi="'+pi+'"]').dataset.done = pd === pt;
+    document.querySelector('[data-phase-pct="'+pi+'"]').textContent = pp+"%";
+    document.querySelector('[data-phase-count="'+pi+'"]').textContent = pd+"/"+pt;
+  });
+  document.querySelectorAll("input[data-id]").forEach(cb => { cb.checked = !!done[cb.dataset.id]; });
+  applyFilter();
+}
+
+/* ---------- filter + search ---------- */
+let filter = "all", query = "";
+function highlight(span, q){
+  const raw = span.dataset.raw;
+  span.textContent = "";
+  if (!q){ span.textContent = raw; return; }
+  const i = raw.toLowerCase().indexOf(q);
+  if (i < 0){ span.textContent = raw; return; }
+  span.append(raw.slice(0,i), h("mark",{text:raw.slice(i,i+q.length)}), raw.slice(i+q.length));
+}
+function applyFilter(){
+  let anyVisible = false;
+  document.querySelectorAll("details.mod").forEach(det => {
+    let vis = 0;
+    det.querySelectorAll("li[data-id]").forEach(li => {
+      const isDone = !!done[li.dataset.id];
+      const okF = filter === "all" || (filter === "done" ? isDone : !isDone);
+      const okQ = !query || li.dataset.search.includes(query);
+      li.hidden = !(okF && okQ);
+      if (!li.hidden) vis++;
+      highlight(li.querySelector(".label"), query);
+    });
+    det.hidden = vis === 0;
+    if (query && vis) det.open = true;
+    if (vis) anyVisible = true;
+  });
+  document.querySelectorAll("section.phase").forEach(sec => {
+    sec.hidden = !sec.querySelector("details.mod:not([hidden])");
+  });
+  $("nores").hidden = anyVisible;
+}
+
+root.addEventListener("change", e => {
+  const id = e.target.dataset && e.target.dataset.id;
+  if (!id) return;
+  if (e.target.checked) done[id] = true; else delete done[id];
+  save(); render();
+});
+let qt;
+$("q").addEventListener("input", e => {
+  clearTimeout(qt);
+  qt = setTimeout(() => { query = e.target.value.trim().toLowerCase(); applyFilter(); }, 120);
+});
+["all","todo","done"].forEach(f => {
+  $("f-"+f).addEventListener("click", () => {
+    filter = f;
+    ["all","todo","done"].forEach(g => $("f-"+g).setAttribute("aria-pressed", g===f));
+    applyFilter();
+  });
+});
+$("openAll").addEventListener("click", () => document.querySelectorAll("details.mod").forEach(d => d.open = true));
+$("closeAll").addEventListener("click", () => document.querySelectorAll("details.mod").forEach(d => d.open = false));
+
+/* ---------- export / import / reset ---------- */
+const note = $("ioNote");
+$("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({app:"ds-roadmap-tracker",version:1,exportedAt:new Date().toISOString(),done}, null, 2)], {type:"application/json"});
+  const a = h("a",{href:URL.createObjectURL(blob),download:"ds-tracker-progress.json"});
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  note.textContent = "Progress file download ho gayi.";
+});
+$("importFile").addEventListener("change", e => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if (!data || typeof data.done !== "object") throw new Error("bad");
+      done = {};
+      Object.keys(data.done).forEach(k => { if (ALL.includes(k) && data.done[k]) done[k] = true; });
+      save(); render();
+      note.textContent = "Progress import ho gayi (" + Object.keys(done).length + " items).";
+    } catch(err){ note.textContent = "Ye file sahi progress file nahi hai. Export ki hui .json file chuno."; }
+    e.target.value = "";
+  };
+  r.readAsText(f);
+});
+const resetBox = $("resetBox");
+function resetIdle(){
+  resetBox.replaceChildren(h("button",{class:"chip",id:"resetBtn",text:"Reset"}));
+  $("resetBtn").addEventListener("click", resetAsk);
+}
+function resetAsk(){
+  const y = h("button",{class:"chip",text:"Haan, sab clear"}), n = h("button",{class:"chip",text:"Cancel"});
+  y.addEventListener("click", () => { done = {}; save(); render(); resetIdle(); note.textContent = "Progress clear ho gayi."; });
+  n.addEventListener("click", resetIdle);
+  resetBox.replaceChildren(h("span",{class:"note",text:"Pakka? "}), y, n);
+}
+$("resetBtn").addEventListener("click", resetAsk);
+
+render();
+// first unfinished module open
+const firstTodo = ALL.find(id => !done[id]);
+if (firstTodo){ const [pi,mi] = firstTodo.split("-"); document.querySelector('[data-mod="'+pi+"-"+mi+'"]').open = true; }
+})();
+</script>
+</body>
+</html>

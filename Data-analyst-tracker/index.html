@@ -1,1 +1,850 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Analyst Tracker</title>
+<style>
+/* Layout: sticky top bar with tabs; one panel visible at a time; wide tables scroll inside their own box. */
+:root{
+  --bg:#f4f6f8; --surface:#ffffff; --ink:#16202a; --muted:#5b6876; --line:#dde3ea; --accent:#1f5fbf; --accent-ink:#ffffff; --hover:#eef2f7;
+  --s0-bg:#e8ecf0; --s0-fg:#44515f;
+  --s1-bg:#fdecc8; --s1-fg:#7a4b00;
+  --s2-bg:#d9e8fb; --s2-fg:#154a94;
+  --s3-bg:#d3f0ec; --s3-fg:#0c5f57;
+  --s4-bg:#d5f0dc; --s4-fg:#17602d;
+  --bar0:#cfd6de; --bar1:#f0b429; --bar2:#4a8be0; --bar3:#27a69a; --bar4:#2e9e55;
+  --must:#b42318; --good:#8a5a00; --bonus:#5b6876;
+  --font:Inter,"Segoe UI",Roboto,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f151c; --surface:#161e27; --ink:#e6ebf1; --muted:#93a0ae; --line:#27323e; --accent:#6aa3f0; --accent-ink:#0b1117; --hover:#1d2733;
+  --s0-bg:#27323e; --s0-fg:#b4bfcb;
+  --s1-bg:#4a3911; --s1-fg:#f6cf7a;
+  --s2-bg:#1c3556; --s2-fg:#a8cdf8;
+  --s3-bg:#12413d; --s3-fg:#8fdcd2;
+  --s4-bg:#16422a; --s4-fg:#9be0b3;
+  --bar0:#34414f; --bar1:#d9a21f; --bar2:#5b9bf0; --bar3:#36b8ac; --bar4:#3fb468;
+  --must:#ff8a7a; --good:#f0c05a; --bonus:#93a0ae; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f151c; --surface:#161e27; --ink:#e6ebf1; --muted:#93a0ae; --line:#27323e; --accent:#6aa3f0; --accent-ink:#0b1117; --hover:#1d2733;
+  --s0-bg:#27323e; --s0-fg:#b4bfcb;
+  --s1-bg:#4a3911; --s1-fg:#f6cf7a;
+  --s2-bg:#1c3556; --s2-fg:#a8cdf8;
+  --s3-bg:#12413d; --s3-fg:#8fdcd2;
+  --s4-bg:#16422a; --s4-fg:#9be0b3;
+  --bar0:#34414f; --bar1:#d9a21f; --bar2:#5b9bf0; --bar3:#36b8ac; --bar4:#3fb468;
+  --must:#ff8a7a; --good:#f0c05a; --bonus:#93a0ae; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--font);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+h1,h2,h3{margin:0;text-wrap:balance}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding-block:14px 0;border-bottom:1px solid var(--line);margin-inline:-4px;padding-inline:4px}
+.top-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px}
+.brand h1{font-size:20px;letter-spacing:-.01em}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.danger:hover{border-color:var(--must);color:var(--must)}
+.tabs{display:flex;gap:2px;overflow-x:auto;margin-top:12px}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:8px 14px;cursor:pointer;color:var(--muted);white-space:nowrap;font-weight:500}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+
+main{max-width:1500px;margin:0 auto;padding-top:20px}
+.panel[hidden]{display:none}
+.section-title{font-size:15px;font-weight:600;margin:0 0 10px}
+.stack{display:flex;flex-direction:column;gap:22px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.stat .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.stat .v{font-size:26px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-top:2px}
+.stat .s{font-size:12px;color:var(--muted)}
+
+.box{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;background:var(--surface);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--hover)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tfoot td{font-weight:600;border-top:2px solid var(--line);border-bottom:0}
+
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--bar0);min-width:140px}
+.bar i{display:block;height:100%}
+.b4{background:var(--bar4)}.b3{background:var(--bar3)}.b2{background:var(--bar2)}.b1{background:var(--bar1)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin-bottom:10px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.list{margin:0;padding:0;list-style:none}
+.list li{padding:9px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;justify-content:space-between;align-items:baseline}
+.list li:last-child{border-bottom:0}
+.list .t{min-width:0}
+.list .m{color:var(--muted);font-size:12px}
+.empty{padding:16px 14px;color:var(--muted)}
+
+.chip{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:600;white-space:nowrap}
+.st0{background:var(--s0-bg);color:var(--s0-fg)}.st1{background:var(--s1-bg);color:var(--s1-fg)}.st2{background:var(--s2-bg);color:var(--s2-fg)}.st3{background:var(--s3-bg);color:var(--s3-fg)}.st4{background:var(--s4-bg);color:var(--s4-fg)}
+.pri-Must{color:var(--must)}.pri-Good{color:var(--good)}.pri-Bonus{color:var(--bonus)}
+.pri{font-weight:600;font-size:12px;white-space:nowrap}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.filters input[type=search]{min-width:220px;flex:1 1 220px}
+input[type=search],input[type=text],input[type=number],input[type=date],select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 8px;min-width:0}
+select.stsel{font-weight:600;border:0;border-radius:10px;padding:3px 6px;cursor:pointer}
+.count{color:var(--muted);font-size:13px;margin-left:auto}
+.chk{display:flex;align-items:center;gap:6px;color:var(--muted)}
+
+#topicTable{min-width:1250px}
+#topicTable td.id{color:var(--muted);font-size:12px;white-space:nowrap}
+.tn{font-weight:600}
+.tw{color:var(--muted);font-size:12.5px;margin-top:2px;max-width:420px}
+#topicTable input[type=number]{width:70px}
+#topicTable input[type=text]{width:170px}
+#topicTable textarea{width:230px;min-height:34px;resize:vertical}
+#topicTable td.cat{white-space:nowrap;color:var(--muted)}
+
+form.add{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;padding:14px;margin-bottom:14px}
+form.add label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);font-weight:600;min-width:0}
+form.add label.wide{grid-column:span 2}
+form.add input,form.add select,form.add textarea{font-weight:400;color:var(--ink);width:100%}
+form.add textarea{min-height:56px;resize:vertical}
+form.add .go{align-self:end}
+@media (max-width:520px){form.add label.wide{grid-column:span 1}}
+.log td{min-width:90px}
+.log td.long{min-width:200px;max-width:340px;white-space:pre-wrap}
+.log .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:0 6px}
+.log .del:hover{color:var(--must)}
+.help{padding:14px 16px;color:var(--muted);font-size:13px}
+.help b{color:var(--ink)}
+.help ol{margin:6px 0 0;padding-left:20px}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <h1>Data Analyst Tracker</h1>
+      <p>Every topic a data analyst with ~2 years of corporate experience is expected to know. Progress saves in this browser.</p>
+    </div>
+    <div class="tools">
+      <button class="btn" id="btnCsv" type="button">Export topics (CSV)</button>
+      <button class="btn" id="btnBackup" type="button">Backup (JSON)</button>
+      <button class="btn" id="btnRestore" type="button">Restore backup</button>
+      <input type="file" id="fileRestore" accept="application/json,.json" hidden>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="dashboard">Dashboard</button>
+    <button class="tab" role="tab" data-tab="topics">Topics</button>
+    <button class="tab" role="tab" data-tab="daily">Daily Log</button>
+    <button class="tab" role="tab" data-tab="practice">Practice Log</button>
+    <button class="tab" role="tab" data-tab="projects">Projects</button>
+  </nav>
+</header>
+
+<main>
+  <section class="panel" id="p-dashboard">
+    <div class="stack">
+      <div class="stats" id="stats"></div>
+
+      <div>
+        <h2 class="section-title">Progress by category</h2>
+        <div class="legend" id="legend"></div>
+        <div class="box scroll"><table id="catTable"></table></div>
+      </div>
+
+      <div class="two">
+        <div>
+          <h2 class="section-title">In progress now</h2>
+          <div class="box"><ul class="list" id="nowList"></ul></div>
+        </div>
+        <div>
+          <h2 class="section-title">Next up: Must Know, not started</h2>
+          <div class="box"><ul class="list" id="nextList"></ul></div>
+        </div>
+      </div>
+
+      <div class="box help">
+        <b>How to use this tracker</b>
+        <ol>
+          <li><b>Topics</b>: set a Status for each topic. Learning stamps a start date, Mastered stamps a completion date.</li>
+          <li>Rate your <b>Confidence</b> from 1 (shaky) to 5 (I can teach it) and add hours, a resource link and notes.</li>
+          <li>Fill the <b>Daily Log</b> every study day. The streak and hours on this page come from it.</li>
+          <li>Log every SQL/Python/case problem in <b>Practice Log</b>. Revisit what you solved with hints or by reading the solution.</li>
+          <li>Build 3 to 5 <b>Projects</b>. They matter as much as the topic list in interviews.</li>
+          <li>Progress score weights status: Learning 25%, Practicing 50%, Revision 75%, Mastered 100%.</li>
+          <li>Use <b>Backup (JSON)</b> once a week. Browser data can be cleared.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-topics" hidden>
+    <div class="filters">
+      <input type="search" id="fSearch" placeholder="Search topic, keyword or ID" aria-label="Search topics">
+      <select id="fCat" aria-label="Category"></select>
+      <select id="fStatus" aria-label="Status"></select>
+      <select id="fPri" aria-label="Priority"></select>
+      <select id="fLvl" aria-label="Level"></select>
+      <label class="chk"><input type="checkbox" id="fHide"> Hide mastered</label>
+      <button class="btn" id="btnAddTopic" type="button">+ Add own topic</button>
+      <span class="count" id="tCount"></span>
+    </div>
+    <form class="box add" id="topicForm" hidden>
+      <label>Category<select id="nCat" required></select></label>
+      <label class="wide">Topic<input type="text" id="nTopic" required></label>
+      <label>Level<select id="nLvl"><option>Basic</option><option selected>Intermediate</option><option>Advanced</option></select></label>
+      <label>Priority<select id="nPri"><option>Must Know</option><option selected>Good to Have</option><option>Bonus</option></select></label>
+      <label class="wide">What to cover<input type="text" id="nWhat"></label>
+      <button class="btn primary go" type="submit">Add topic</button>
+    </form>
+    <div class="box scroll"><table id="topicTable"></table></div>
+  </section>
+
+  <section class="panel" id="p-daily" hidden><div id="daily"></div></section>
+  <section class="panel" id="p-practice" hidden><div id="practice"></div></section>
+  <section class="panel" id="p-projects" hidden><div id="projects"></div></section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ---------- Topic catalogue: [category, id prefix, [[topic, level B/I/A, priority M/G/X, what to cover]]] ---------- */
+const DATA = [
+["Business & Domain","BD",[
+["Role of a data analyst","B","M","Where analytics sits (product, marketing, ops, finance); analyst vs scientist vs engineer; what stakeholders expect from you"],
+["Understanding the business model","B","M","How the company earns money, revenue streams, cost drivers, customer journey, key teams and who owns what"],
+["KPIs and metrics","B","M","Metric vs KPI vs dimension, leading vs lagging, vanity vs actionable metrics, north star metric, metric trees"],
+["Metric definitions and business logic","I","M","Precise definitions (DAU, MAU, churn, retention, ARPU, LTV, CAC, conversion), edge cases, writing them in a data dictionary"],
+["Requirement gathering","I","M","Ask the right questions, clarify the business question, the decision the data will drive, success criteria, deadline"],
+["BRD / dashboard requirement docs","I","G","Reading and writing business requirement documents, wireframes, acceptance criteria, sign-off"],
+["Funnel thinking","I","M","Define stages, drop-off, step conversion, time between steps, where to look first"],
+["Cohort and retention thinking","I","M","Cohort definition, retention curves, day-N vs rolling retention, reading flat vs decaying curves"],
+["Unit economics","I","G","LTV, CAC, payback period, contribution margin, gross vs net revenue"],
+["Domain knowledge","I","M","Pick your domain (gaming, fintech, e-commerce, SaaS) and learn its terms, seasonality, regulations, typical metrics"],
+["Finance basics for analysts","B","G","P&L, GMV vs revenue, margin, budget vs actual, forecast vs actual, YoY / MoM / QoQ, fiscal calendar"],
+["Marketing analytics basics","I","G","Channels, CTR, CPC, CPA, ROAS, attribution, UTM tracking, campaign vs organic"],
+["Product analytics basics","I","G","Events, sessions, feature adoption, engagement, stickiness (DAU/MAU), activation"],
+["Hypothesis and root-cause thinking","I","M","Why did the metric move? Decompose, segment by dimension, rule out data issues first, then business causes"]
+]],
+["Excel & Sheets","XL",[
+["Navigation and shortcuts","B","M","Ctrl+Arrow, Ctrl+Shift+L filters, Alt+=, F4 anchoring, Ctrl+T tables, fast formatting, Ctrl+; dates"],
+["Data types and formats","B","M","Text vs number vs date, number formats, text to columns, paste special, locale issues"],
+["Basic formulas","B","M","SUM, AVERAGE, COUNT, COUNTA, MIN, MAX, ROUND, relative vs absolute references"],
+["Logical functions","B","M","IF, IFS, AND, OR, NOT, IFERROR, nested IF, SWITCH"],
+["Text functions","B","M","LEFT, RIGHT, MID, LEN, TRIM, CLEAN, UPPER/LOWER/PROPER, SUBSTITUTE, TEXTJOIN, CONCAT, TEXTSPLIT"],
+["Date and time functions","B","M","TODAY, DATEDIF, EOMONTH, NETWORKDAYS, WEEKNUM, TEXT(date), YEAR/MONTH/DAY"],
+["Lookup functions","I","M","VLOOKUP, HLOOKUP, INDEX-MATCH, XLOOKUP, exact vs approximate match, handling #N/A"],
+["Conditional aggregation","I","M","SUMIF(S), COUNTIF(S), AVERAGEIF(S), MAXIFS, SUMPRODUCT"],
+["Dynamic array functions","I","G","FILTER, SORT, UNIQUE, SEQUENCE, LET, LAMBDA, spill ranges"],
+["Pivot tables","I","M","Rows/columns/values, grouping dates, calculated fields, slicers, timelines, refresh, show values as %"],
+["Charts in Excel","I","M","Column, line, combo, waterfall, dual axis, formatting, dynamic chart ranges"],
+["Conditional formatting","B","M","Color scales, icon sets, formula-based rules, highlight duplicates and thresholds"],
+["Data validation and dropdowns","B","G","Lists, dependent dropdowns, custom rules, input messages"],
+["Data cleaning in Excel","B","M","Remove duplicates, Find and Replace, Flash Fill, text to columns, blanks, consistent casing"],
+["Power Query","I","M","Import, transform, merge and append queries, unpivot, M basics, refresh, applied steps"],
+["Power Pivot and DAX basics","A","G","Data model, relationships, measures vs calculated columns, CALCULATE"],
+["What-if analysis","I","G","Goal Seek, Scenario Manager, data tables, sensitivity analysis"],
+["Excel dashboards","I","G","KPI cards, slicers, layout, protected sheets, printing"],
+["Macros and VBA basics","A","X","Record macro, simple VBA, automating repetitive reports"],
+["Spreadsheet best practices","I","M","Structured tables, no hardcoding, input vs calc sheets, trace precedents, naming, version history, file size and performance"],
+["Google Sheets specifics","B","G","QUERY, IMPORTRANGE, ARRAYFORMULA, GOOGLEFINANCE, sharing and permissions, Apps Script basics"]
+]],
+["SQL","SQL",[
+["Relational database basics","B","M","Tables, rows, columns, primary/foreign keys, schemas, ER diagrams, OLTP vs OLAP"],
+["SELECT, WHERE, ORDER BY, LIMIT","B","M","Filtering, operators, BETWEEN, IN, LIKE, DISTINCT, aliases"],
+["NULL handling","B","M","IS NULL, COALESCE, NULLIF, NULL in comparisons and aggregates, three-valued logic"],
+["Aggregations and GROUP BY","B","M","COUNT, SUM, AVG, MIN, MAX, COUNT(DISTINCT), multiple group columns"],
+["WHERE vs HAVING and execution order","B","M","FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT: the logical order"],
+["Joins","B","M","INNER, LEFT, RIGHT, FULL, CROSS, SELF joins, join keys, choosing the right type"],
+["Join pitfalls","I","M","Fan-out from one-to-many, filter in ON vs WHERE, anti-join, semi-join, many-to-many duplicates, row count checks"],
+["Set operations","B","G","UNION, UNION ALL, INTERSECT, EXCEPT/MINUS and when each is right"],
+["Subqueries","I","M","Scalar, correlated, IN / EXISTS / NOT EXISTS, derived tables"],
+["CTEs","I","M","WITH, chained CTEs, readable pipelines, recursive CTE"],
+["CASE WHEN","B","M","Conditional logic, bucketing, CASE-based pivots, conditional aggregation"],
+["String functions","B","M","CONCAT, SUBSTRING, TRIM, REPLACE, SPLIT_PART, REGEXP, LIKE / ILIKE"],
+["Date and time functions","I","M","DATE_TRUNC, EXTRACT, DATEDIFF, DATE_ADD, intervals, time zones, week and month boundaries"],
+["Type casting and numeric gotchas","I","M","CAST, ::, ROUND, integer division, implicit conversion, float vs decimal"],
+["Window functions: ranking","I","M","ROW_NUMBER, RANK, DENSE_RANK, NTILE, PARTITION BY, top-N per group"],
+["Window functions: LAG and LEAD","I","M","Period-over-period change, time between events, previous/next value"],
+["Window functions: running totals and moving averages","I","M","Frames ROWS/RANGE BETWEEN, cumulative sum, 7-day moving average, FIRST_VALUE / LAST_VALUE"],
+["Deduplication","I","M","ROW_NUMBER dedupe, latest record per user, DISTINCT ON, handling duplicates in raw data"],
+["Pivot and unpivot","I","G","CASE-based pivot, PIVOT / UNPIVOT, UNNEST, lateral flatten"],
+["Date series and gap filling","I","M","generate_series, calendar tables, filling missing dates with zeros, left join to a date spine"],
+["Cohort and retention queries","I","M","First activity date, cohort month, retention matrix, day-N retention"],
+["Funnel queries","I","M","Step conversion with CTEs or conditional aggregation, ordered events, drop-off"],
+["Sessionization","A","G","LAG with timeout, session ids, session duration and count"],
+["Percentiles and median","I","G","PERCENTILE_CONT, approximate median, outlier detection in SQL"],
+["Views, materialized views, temp tables","I","G","When to use each, refresh cost, naming, clean up"],
+["DDL and DML","B","M","CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, MERGE/UPSERT, TRUNCATE. Take extreme care on production data"],
+["Constraints and keys","B","G","PK, FK, UNIQUE, NOT NULL, CHECK, defaults, referential integrity"],
+["Indexes","I","G","How they speed lookups, composite indexes, when they do not help, cost of writes"],
+["Execution plans (EXPLAIN)","I","G","Reading plans, sequential vs index scan, join strategy, cost estimates"],
+["Query optimisation","A","M","Select only needed columns, filter early, avoid SELECT *, partition pruning, no function on indexed column, avoid cross-join explosion, sampling"],
+["Transactions and ACID","I","G","BEGIN / COMMIT / ROLLBACK, isolation levels, locks"],
+["Stored procedures, functions, triggers","A","X","When analysts meet them, reading existing ones, basic authoring"],
+["SQL dialect differences","I","G","MySQL vs PostgreSQL vs SQL Server vs BigQuery vs Snowflake vs Redshift syntax"],
+["Semi-structured data in SQL","I","G","JSON functions, arrays, nested fields, flattening"],
+["SQL readability and review","B","M","Formatting, naming, comments, style guide, saving queries, peer review"],
+["Data validation queries","I","M","Row counts, duplicates, nulls, reconcile totals against source, sanity checks before sending numbers"],
+["NoSQL awareness (MongoDB, Redis)","I","G","Documents, aggregation pipeline basics, when NoSQL fits, key-value stores"]
+]],
+["Python","PY",[
+["Python basics","B","M","Variables, data types, operators, input/output"],
+["Control flow and loops","B","M","if/else, for, while, break/continue, comprehensions"],
+["Functions and scope","B","M","def, args and kwargs, lambda, return, docstrings"],
+["Core data structures","B","M","list, tuple, dict, set, slicing, sorting, nested structures"],
+["Strings, f-strings and regex","B","M","String methods, formatting, the re module, extracting patterns"],
+["File handling","B","M","open, with, CSV / JSON / Excel read and write, pathlib, encoding issues"],
+["Error handling and logging","I","M","try/except, raising errors, logging module, readable failure messages"],
+["Environments and packages","B","M","venv / conda, pip, requirements.txt, imports, reproducibility"],
+["NumPy","I","M","Arrays, vectorisation, broadcasting, aggregations, random"],
+["Pandas: load and inspect","B","M","read_csv/excel/sql, head, info, describe, dtypes, shape, value_counts"],
+["Pandas: select and filter","B","M","loc, iloc, boolean masks, query, isin, sorting"],
+["Pandas: cleaning","I","M","Missing values, dropna/fillna, duplicates, astype, rename, .str methods, apply"],
+["Pandas: groupby and aggregation","I","M","groupby, agg, transform, named aggregation, multi-level results"],
+["Pandas: merge and join","I","M","merge, concat, join, validate and indicator parameters, key mismatches"],
+["Pandas: reshaping","I","M","pivot, pivot_table, melt, stack/unstack, crosstab"],
+["Pandas: time series","I","M","datetime, resample, rolling, shift, date offsets, time zones"],
+["Pandas performance on large data","A","G","dtypes, categoricals, chunksize, vectorisation vs apply, Parquet, Polars / DuckDB awareness"],
+["Matplotlib","B","M","Figures, axes, line/bar/hist/scatter, labels, saving charts"],
+["Seaborn and Plotly","I","G","Statistical plots, heatmaps, interactive charts"],
+["Connecting to databases","I","M","SQLAlchemy, psycopg2, pymongo, parameterised queries, credentials via environment variables, never hardcode secrets"],
+["APIs and web data","I","G","requests, JSON, pagination, auth, rate limits, retries"],
+["Web scraping basics","I","X","BeautifulSoup, robots.txt, ethics"],
+["Jupyter best practices","B","M","Notebook structure, markdown, restart and run all, nbconvert, keeping outputs clean"],
+["Automating reports","I","M","Scheduled scripts, cron, emailing/Slack reports, Excel output with openpyxl or xlsxwriter"],
+["Clean reusable code","I","G","Modules, PEP8, type hints, docstrings, pytest basics"],
+["Debugging","B","M","Reading stack traces, print debugging, pdb, minimal reproducible examples"],
+["OOP basics","I","X","Classes, methods, when analysts need them"],
+["Streamlit and Python dashboards","I","X","Quick internal apps and demos"]
+]],
+["Statistics","ST",[
+["Types of data","B","M","Nominal, ordinal, interval, ratio; categorical vs numerical; discrete vs continuous"],
+["Descriptive statistics","B","M","Mean, median, mode, range, variance, standard deviation, IQR; when mean misleads"],
+["Distributions","B","M","Normal, skewed, uniform, binomial, Poisson, exponential, long-tail business data"],
+["Percentiles and quartiles","B","M","P50 / P90 / P99, box plots, reporting latency or spend by percentile"],
+["Outliers","I","M","Z-score, IQR rule, winsorising, remove vs keep, test accounts and bots"],
+["Correlation vs causation","B","M","Pearson, Spearman, spurious correlation, confounders"],
+["Probability basics","B","M","Events, conditional probability, Bayes theorem, independence"],
+["Sampling methods","I","M","Random, stratified, cluster, sampling bias, survivorship bias, sample size"],
+["Central Limit Theorem and LLN","I","M","Why sample means are normal, why averages stabilise with more data"],
+["Confidence intervals","I","M","Meaning, interpretation, width vs sample size, CI for proportions and means"],
+["Hypothesis testing","I","M","Null/alternative, p-value, alpha, Type I/II errors, power"],
+["t-tests and z-tests","I","M","One-sample, two-sample, paired, assumptions"],
+["Chi-square tests","I","G","Independence, goodness of fit, categorical comparisons"],
+["ANOVA","A","G","Comparing 3+ groups, post-hoc tests"],
+["Non-parametric tests","A","G","Mann-Whitney, Wilcoxon, KS test, when data is not normal"],
+["Multiple testing and peeking","A","G","Bonferroni, FDR, why checking results daily inflates false positives"],
+["Effect size and practical significance","I","M","Statistically significant is not business significant; lift, Cohen's d"],
+["Linear regression","I","M","Assumptions, interpreting coefficients, R squared, residuals"],
+["Logistic regression","I","G","Odds, probability, interpreting coefficients, classification threshold"],
+["Multicollinearity and interactions","A","G","VIF, correlated features, interaction terms"],
+["Time series basics","I","M","Trend, seasonality, stationarity, moving averages, decomposition"],
+["Forecasting methods","A","G","Naive, moving average, exponential smoothing, ARIMA, Prophet, MAPE / RMSE"],
+["Simpson's paradox and fallacies","I","M","Aggregation reversing trends, base-rate fallacy, selection bias"],
+["Bayesian thinking","A","X","Priors, posteriors, Bayesian A/B intuition"]
+]],
+["Data Cleaning & EDA","EDA",[
+["Understanding source and grain","B","M","One row equals what? Primary key, granularity, time range, refresh frequency, owner"],
+["Data profiling","B","M","Row counts, distinct counts, null %, min/max, value frequencies"],
+["Missing data","I","M","MCAR/MAR/MNAR, drop vs impute (mean, median, mode, forward fill), flag missingness"],
+["Duplicates","B","M","Exact vs near duplicates, choosing a dedupe key, keeping latest"],
+["Type and format fixes","B","M","Dates, currencies, units, encoding, whitespace, casing"],
+["Standardisation","B","M","Category mapping, spelling variants, lookup tables, country and city names"],
+["Outlier investigation","I","M","Genuine vs error, internal users, test accounts, bots, one-off events"],
+["Invalid values and business rules","I","M","Negatives, impossible dates, out-of-range values, referential integrity"],
+["Univariate analysis","B","M","Histograms, box plots, value counts"],
+["Bivariate and multivariate analysis","I","M","Scatter, heatmaps, group comparisons, pair plots"],
+["Segmentation and slicing","I","M","By geography, device, cohort, channel, customer tier, new vs returning"],
+["Time-based analysis","I","M","Trends, seasonality, day-of-week, holidays, YoY, partial-period traps"],
+["Feature creation","I","G","Ratios, flags, buckets, rolling windows, lags"],
+["Joining and reconciliation","I","M","Match totals with source, reconcile across systems, explain gaps"],
+["Documenting assumptions","B","M","Cleaning log, assumptions, caveats, versioned queries"],
+["Sanity-checking numbers","B","M","Does it make sense? Compare with last week, known benchmarks, order of magnitude"]
+]],
+["Visualization & BI","BI",[
+["Choosing the right chart","B","M","Comparison, trend, distribution, composition, relationship; when not to use a pie"],
+["Design principles","B","M","Declutter, contrast, colour-blind safe palettes, consistent scales, no truncated or 3D charts"],
+["Dashboard design and layout","I","M","KPI row first, F-pattern, filters, drill-down, mobile view, one purpose per audience"],
+["Visual storytelling","I","M","Titles that state the insight, annotations, highlight colour, removing noise"],
+["Power BI: Power Query","I","M","Connect, clean, merge, append, unpivot, query folding"],
+["Power BI: data modelling","I","M","Star schema, relationships, cardinality, cross-filter direction, date table"],
+["Power BI: DAX basics","I","M","Measures vs columns, SUM, CALCULATE, FILTER, ALL, SUMX, DIVIDE, context"],
+["Power BI: DAX time intelligence","A","G","TOTALYTD, SAMEPERIODLASTYEAR, DATEADD, calendar table"],
+["Power BI: visuals and interactivity","I","M","Slicers, bookmarks, drill-through, tooltips, parameters"],
+["Power BI Service","I","M","Workspaces, publish, scheduled refresh, gateway, apps, sharing, usage metrics"],
+["Tableau: fundamentals","I","G","Dimensions vs measures, discrete vs continuous, marks card, calculated fields"],
+["Tableau: LOD and table calcs","A","G","FIXED / INCLUDE / EXCLUDE, running total, rank"],
+["Tableau: dashboards and publishing","I","G","Actions, parameters, extracts vs live, Server / Cloud"],
+["Looker, Looker Studio, Metabase, Superset","I","G","Self-serve BI basics, LookML awareness, saved questions"],
+["Dashboard performance tuning","A","G","Extracts, aggregate tables, fewer visuals, incremental refresh"],
+["Row-level security and access","A","G","Roles, who sees which rows, testing as a user"],
+["Dashboard testing and validation","I","M","Reconcile with SQL, test filters and edge cases, UAT with stakeholders"],
+["Dashboard documentation and adoption","I","M","Definitions on the page, owner, refresh time, training, usage tracking, retiring unused dashboards"],
+["Alerts and subscriptions","I","G","Email subscriptions, threshold alerts, scheduled snapshots"],
+["Semantic layer and certified datasets","A","G","One definition used by many dashboards"],
+["Maps and geospatial","I","X","Choropleth, point maps, geocoding basics"]
+]],
+["Data Modeling & Warehousing","DW",[
+["OLTP vs OLAP","B","M","Transaction systems vs analytical systems, why we do not report from production"],
+["Normalisation and denormalisation","I","M","1NF to 3NF, why warehouses denormalise"],
+["Star and snowflake schema","I","M","Fact and dimension tables, join paths, grain"],
+["Fact table types","A","G","Transaction, periodic snapshot, accumulating snapshot"],
+["Slowly changing dimensions","A","G","SCD type 1, 2, 3, effective dates"],
+["Keys","I","G","Surrogate vs natural keys, composite keys, key stability"],
+["Warehouse vs lake vs lakehouse","I","G","Structured vs raw storage, schema on read vs write"],
+["Cloud warehouses","I","M","BigQuery, Snowflake, Redshift, Synapse: storage vs compute, cost per query"],
+["Data layers","I","M","Raw/staging, cleaned, curated, bronze/silver/gold, data marts"],
+["Partitioning and clustering","A","G","Partition pruning, cluster keys, scan cost"],
+["Data lineage and catalog","I","G","Where a number comes from, upstream/downstream impact, catalog tools"],
+["Data dictionary","B","M","Column meanings, owners, allowed values, update process"],
+["Calendar and date dimension","I","G","Fiscal calendar, holidays, week start, day flags"],
+["Event tracking schema","I","M","Event names, properties, user and session ids, naming conventions, tracking plan"]
+]],
+["ETL & Automation","ETL",[
+["ETL vs ELT","B","M","Where transformation happens and why modern stacks prefer ELT"],
+["Batch vs streaming","I","G","Latency, cost, use cases for each"],
+["Orchestration with Airflow","I","G","DAGs, tasks, schedules, retries, backfills, sensors"],
+["dbt basics","I","G","Models, sources, tests, docs, incremental models, Jinja"],
+["Incremental loads and idempotency","A","G","Load only new data, rerun safely without duplicates"],
+["Ingestion tools","I","X","Fivetran, Airbyte, Kafka and CDC awareness"],
+["File formats","I","G","CSV, JSON, Parquet, Avro, ORC, compression, schema evolution"],
+["Scheduling","B","M","cron, cloud schedulers, time zones, dependencies"],
+["Pipeline monitoring and failure handling","I","M","Alerts, retries, freshness checks, SLAs, who gets paged"],
+["Backfills and reprocessing","A","G","Rebuilding history safely, communicating changed numbers"],
+["Queues and event data","I","X","Redis, RabbitMQ, Kafka basics and how events reach the warehouse"],
+["APIs for pushing data","I","X","Reverse ETL, sending data back to business tools"]
+]],
+["Analytics Techniques","AN",[
+["Four types of analytics","B","M","Descriptive, diagnostic, predictive, prescriptive"],
+["Trend and period comparison","B","M","WoW, MoM, YoY, same weekday last week, seasonality, partial-period traps"],
+["Metric decomposition","I","M","Revenue = users x conversion x AOV; find which factor moved"],
+["Funnel analysis","I","M","Stages, conversion, segment-wise leaks"],
+["Cohort analysis","I","M","Acquisition cohorts, retention curves, behaviour over lifetime"],
+["Churn analysis","I","M","Defining churn, leading indicators, survival analysis intro"],
+["RFM segmentation","I","G","Recency, frequency, monetary scoring and actions per segment"],
+["Customer segmentation","I","G","Rule-based vs K-means, naming and using segments"],
+["Customer lifetime value","I","G","Historical vs predictive CLV, use in acquisition spend"],
+["Pareto and ABC analysis","B","G","80/20 rule, top customers or products, long-tail"],
+["Market basket analysis","I","X","Association rules, support/confidence/lift, cross-sell"],
+["Pricing and promotion analysis","A","G","Elasticity, discount impact, cannibalisation, incrementality"],
+["Attribution models","A","G","First/last touch, linear, time decay, MMM awareness"],
+["Anomaly detection","I","M","Thresholds, control charts, z-score, seasonality-aware alerts"],
+["Business forecasting","I","G","Demand, revenue, targets, scenario planning, forecast accuracy tracking"],
+["Impact and causal analysis","A","G","Pre-post, diff-in-diff, matching, counterfactual thinking"],
+["Scenario and sensitivity analysis","I","G","Best / base / worst case, what moves the answer most"],
+["Benchmarking and target setting","I","G","Internal and external benchmarks, realistic targets"],
+["Market sizing and estimation","I","G","Fermi estimates, TAM / SAM / SOM, sanity-checking assumptions"]
+]],
+["A/B Testing","AB",[
+["Experiment design","I","M","Hypothesis, control/treatment, randomisation unit, primary metric, guardrail metrics"],
+["Sample size and power","I","M","Baseline rate, MDE, alpha, power, test duration"],
+["Randomisation and SRM checks","A","G","Sample ratio mismatch, assignment bugs, user vs session level"],
+["Running a test properly","I","M","Full weekly cycles, novelty effect, no peeking, stopping rules"],
+["Analysing results","I","M","Lift, p-value, confidence interval, segment cuts, practical significance"],
+["Common A/B mistakes","I","M","Peeking, many metrics, small sample, interference, Simpson's paradox"],
+["Multi-variant and bandits","A","X","A/B/n, multiple comparison control, multi-armed bandits"],
+["Bayesian A/B testing","A","X","Probability of being best, expected loss"],
+["Experiment readout document","I","M","Recommendation, risks, next steps, what we learned"],
+["Variance reduction (CUPED)","A","X","Using pre-experiment data to reach significance faster"]
+]],
+["Machine Learning Basics","ML",[
+["Supervised vs unsupervised","B","G","Labelled vs unlabelled problems, typical business examples"],
+["Train/test split and cross-validation","I","G","Avoiding leakage, holdout sets, k-fold"],
+["Feature engineering and encoding","I","G","One-hot, scaling, imputation, target leakage"],
+["Regression models","I","G","Linear, ridge, lasso"],
+["Classification models","I","G","Logistic regression, decision trees, random forest, gradient boosting"],
+["Evaluation metrics","I","G","Accuracy, precision, recall, F1, ROC-AUC, confusion matrix, RMSE, MAE"],
+["Overfitting and bias-variance","I","G","Spotting and reducing overfit, regularisation"],
+["Clustering","I","G","K-means, hierarchical, silhouette score"],
+["scikit-learn workflow","I","G","Pipelines, fit/transform/predict, saving models"],
+["Model interpretation","A","X","Feature importance, SHAP basics"],
+["When not to use ML","B","G","Start with rules and a baseline; cost of maintaining models"],
+["Working with data scientists","I","G","Preparing feature tables, definitions, handoffs"],
+["GenAI and LLM tools for analysts","B","G","Using AI for SQL/Python help, validating AI output, never pasting sensitive data into public tools"]
+]],
+["Cloud & Tools","CT",[
+["Git basics","B","M","clone, branch, commit, push, pull, merge request, resolve conflicts"],
+["Git workflow in teams","B","M","Feature branches, code review, clear commit messages, .gitignore, never commit secrets"],
+["Command line basics","B","M","cd, ls, grep, curl, cron, ssh, environment variables"],
+["SQL clients and IDEs","B","M","DBeaver, DataGrip, pgAdmin, VS Code, saved connections"],
+["Cloud basics","I","M","AWS / GCP / Azure: storage, compute, IAM, regions, cost awareness"],
+["Warehouse hands-on","I","M","BigQuery, Redshift or Snowflake: load data, run queries, read cost"],
+["Docker basics","I","X","Images, containers, running a local database"],
+["APIs and JSON","B","G","REST, auth, status codes, Postman"],
+["Jira, Confluence, Notion","B","M","Tickets, sprint boards, documentation habits"],
+["Collaboration tools","B","M","Slack/Teams etiquette, shared drives, calendar, meeting notes"],
+["Product analytics tools","I","G","GA4, Mixpanel, Amplitude, CleverTap, Firebase"],
+["Data catalog and observability tools","I","X","DataHub, Atlan, Monte Carlo and similar"],
+["Linux server and logs","I","X","Reading logs, disk space, basic troubleshooting"],
+["Security basics for analysts","B","M","VPN, SSO, MFA, password managers, no data on personal email or chat"]
+]],
+["Data Quality & Governance","DQ",[
+["Dimensions of data quality","B","M","Accuracy, completeness, consistency, timeliness, uniqueness, validity"],
+["Validation checks","I","M","Row count, null, range, freshness, schema checks; dbt tests, Great Expectations"],
+["Reconciliation","I","M","Source vs warehouse vs dashboard"],
+["When the numbers do not match","I","M","Check definitions, time zones, filters, late-arriving data, duplicates, currency, test data, then explain to stakeholders"],
+["PII and sensitive data","B","M","Masking, anonymisation, hashing, need-to-know access"],
+["Compliance basics","I","G","GDPR, India DPDP Act, PCI-DSS, SOC 2, retention policies, audit trails"],
+["Access control","B","M","Least privilege, requesting access, production vs read replica"],
+["Data ownership and stewardship","B","G","Who owns a table or metric, escalation path"],
+["Single source of truth","I","M","One metric definition across teams, avoiding shadow reports"],
+["Handling data incidents","I","M","Detect, communicate, fix, post-mortem, prevent"],
+["Documentation standards","B","M","Table descriptions, change logs, metric definitions"],
+["Ethical data use and bias","I","G","Consent, fairness, avoiding misleading charts"]
+]],
+["Communication & Storytelling","CS",[
+["Story structure","B","M","Context, insight, implication, recommendation"],
+["Executive summary first","B","M","Answer in the first two lines, detail after"],
+["Writing insight emails and reports","B","M","Short, scannable, clear next steps, one ask per message"],
+["Presenting to non-technical stakeholders","I","M","No jargon, analogies, show the decision not the method"],
+["Presenting to leadership","I","M","Lead with impact, expect hard questions, time-box"],
+["Slide design","B","G","One message per slide, readable charts, minimal text"],
+["Explaining statistics simply","I","M","p-value, confidence, correlation in plain words"],
+["Handling pushback","I","M","Defend your method calmly, say 'let me verify and come back' when unsure"],
+["Saying no and managing scope","I","M","Clarify priorities, offer alternatives, protect deep-work time"],
+["Asking clarifying questions","B","M","What decision will this support? By when? What does good look like?"],
+["Recommendations, not just numbers","I","M","Answer 'so what?' every time"],
+["Writing documentation","B","M","Analysis docs, runbooks, README, handover notes"],
+["Meetings and stand-ups","B","M","Two-minute updates, blockers early, notes and follow-ups"],
+["Cross-team collaboration","I","M","Working with engineers, product, design, finance, ops, support"],
+["Giving and receiving feedback","I","G","Review comments, 1:1s, acting on criticism"]
+]],
+["Corporate Workflow","CW",[
+["Team structure and reporting line","B","M","Who requests work, who approves, who to escalate to"],
+["Ad-hoc vs planned work","B","M","Handling urgent asks, intake form or ticket, setting expectations"],
+["Prioritisation","I","M","Impact vs effort, stakeholder expectations, communicating ETA"],
+["Estimating and communicating delays","I","M","Break tasks down, pad honestly, tell people early"],
+["Agile / Scrum / Kanban","B","M","Sprint, backlog, story points, retro, stand-up"],
+["Ticket hygiene","B","M","Clear titles, link queries/dashboards, update status, close the loop"],
+["Version control for analysis","I","M","Query repo, naming conventions, notebooks in git, change logs"],
+["Peer review and QA","I","M","Get queries reviewed, review others, checklist before sharing numbers"],
+["Production vs analytics database","B","M","Read replicas, never run heavy queries on prod, timeouts, query cost"],
+["Knowledge transfer and handover","I","M","Runbooks, no tribal knowledge, hand over cleanly"],
+["Stakeholder management","I","M","Regular syncs, understand what they actually need, manage expectations"],
+["Reporting cadence","I","M","Daily, weekly, monthly reports, MBR/QBR, automating recurring reports"],
+["Working with legacy dashboards and undocumented tables","I","M","Investigate lineage, ask owners, document as you learn"],
+["Sharing data securely","B","M","Permissions, no PII in email or chat, approved storage"],
+["Working with vague requirements","I","M","Prototype early, confirm before building full version"],
+["Time zones, currencies, fiscal calendars","I","M","Fiscal year, week start, time zone handling, FX rates"],
+["SLAs and support rotation","I","G","Response times, on-call analyst duties"],
+["Business and KPI reviews","I","M","Prepare talking points, explain variance, anticipate questions"],
+["Learning from wrong numbers","I","M","Post-mortem, checklist, prevent repeat mistakes"],
+["Visibility and impact","I","G","Share wins, quantify impact, document contributions"],
+["Cost awareness","I","G","Cloud query cost, licences, avoid wasteful refreshes"],
+["Writing a good data request","B","G","Question, deadline, audience, definition, expected output"]
+]],
+["Interview Prep","IP",[
+["Resume and LinkedIn","B","M","Quantified impact bullets, tools, projects, keywords"],
+["SQL interview practice","I","M","LeetCode, StrataScratch, DataLemur: easy to hard, window functions, joins, dedupe"],
+["Python and pandas practice","I","M","Data manipulation questions, basic algorithms"],
+["Statistics questions","I","M","Hypothesis testing, A/B, distributions, probability puzzles"],
+["Case studies and product sense","I","M","Metric drop investigation, defining success metrics, experiment design"],
+["Excel and BI tool tests","I","G","Pivot, lookups, DAX/LOD basics, dashboard critique"],
+["Take-home assignments","I","G","Scope, assumptions, clear write-up, time-box"],
+["Behavioural stories (STAR)","B","M","Conflict, failure, impact, prioritisation, ambiguity"],
+["Explaining your projects","B","M","Problem, approach, result, what you would change"],
+["Guesstimates","I","G","Structure, assumptions, sanity check"],
+["Salary research and negotiation","B","G","Market range, expectations, offers"],
+["Mock interviews","B","G","Practice out loud, get feedback, record yourself"],
+["Company research","B","G","Product, metrics, recent news, questions to ask"]
+]],
+["Career & Growth","CG",[
+["2-year goals and specialisation","B","M","Product, marketing, finance, BI, analytics engineering or data science"],
+["Portfolio projects","I","M","3 to 5 projects on GitHub or a portfolio site with clear write-ups"],
+["Certifications","B","G","PL-300, Tableau, Google Data Analytics, cloud data certs"],
+["Weekly learning routine","B","M","Fixed hours per week, plan and review"],
+["Networking and community","B","G","LinkedIn, meetups, Kaggle, blogs"],
+["Mentorship and feedback","B","G","Find a mentor, ask for feedback regularly"],
+["Brag document","B","M","Record wins with numbers as they happen"],
+["Performance review preparation","I","M","Goals, KPIs, self-review, evidence"],
+["Path to senior analyst","A","G","Ownership, mentoring, strategy, influencing without authority, handling ambiguity"],
+["Staying updated","B","G","Newsletters, release notes, new tools, AI developments"]
+]]
+];
+
+const STATUSES=["Not Started","Learning","Practicing","Revision","Mastered"];
+const WEIGHT=[0,.25,.5,.75,1];
+const LV={B:"Basic",I:"Intermediate",A:"Advanced"}, PR={M:"Must Know",G:"Good to Have",X:"Bonus"};
+const PRCLS={"Must Know":"Must","Good to Have":"Good","Bonus":"Bonus"};
+const CATS=DATA.map(function(d){return d[0];});
+const BASE=[];
+DATA.forEach(function(d){d[2].forEach(function(it,i){BASE.push({id:d[1]+"-"+String(i+1).padStart(2,"0"),cat:d[0],topic:it[0],lvl:LV[it[1]],pri:PR[it[2]],what:it[3]});});});
+
+const SEED_PROJECTS=[
+["Player Retention and Rake Analysis","Work","Which player segments retain best and which drive most revenue?","SQL, Python, BI tool","Own company data","Idea"],
+["Sales Performance Dashboard","Portfolio","Which regions and products drive revenue and where is margin leaking?","SQL, Power BI or Tableau","Superstore or Olist dataset","Idea"],
+["Customer Churn Analysis","Case Study","Which customers are likely to leave and why?","SQL, Python, Tableau","Telco churn dataset","Idea"],
+["Funnel and Retention Analysis","Portfolio","Where do users drop off and which cohorts retain best?","SQL window functions, Python","E-commerce events dataset","Idea"],
+["A/B Test Analysis","Case Study","Did variant B really improve conversion?","Python, scipy, statsmodels","A/B testing dataset (Kaggle)","Idea"],
+["RFM Customer Segmentation","Portfolio","Who are our best, at-risk and lost customers?","SQL, Python","Online Retail dataset (UCI)","Idea"],
+["Marketing Campaign ROI","Portfolio","Which channels give the best CAC and ROAS?","Excel, SQL, BI tool","Marketing campaign dataset","Idea"],
+["Automated Weekly KPI Report","Work","Can the weekly report be built once and sent automatically?","SQL, Python, email or Slack API","Own company data","Idea"],
+["Data Quality Monitor","Work","Can we catch bad data before the business sees it?","SQL, Python, scheduled job","Own company data","Idea"],
+["Monthly Revenue Forecast","Case Study","What will revenue look like next quarter?","Python, statsmodels or Prophet","Store sales dataset","Idea"],
+["End-to-end Pipeline to Dashboard","Portfolio","Can I take raw data to a refreshed dashboard on my own?","Python, dbt or Airflow, warehouse, BI tool","Public API or CSV","Idea"]
+];
+
+/* ---------- State and storage ---------- */
+const KEY="da-tracker-v1";
+let S={t:{},custom:[],daily:[],practice:[],projects:null};
+function load(){
+  try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);S.t=o.t||{};S.custom=o.custom||[];S.daily=o.daily||[];S.practice=o.practice||[];S.projects=o.projects||null;}}catch(e){}
+  if(!S.projects){S.projects=SEED_PROJECTS.map(function(p,i){return {id:"seed"+i,name:p[0],type:p[1],question:p[2],tools:p[3],dataset:p[4],status:p[5],start:"",end:"",insight:"",link:""};});}
+}
+var saveWarned=false;
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S));}
+  catch(e){if(!saveWarned){saveWarned=true;toast("Browser storage is blocked. Use Backup (JSON) to keep your progress.");}}
+}
+function topics(){return BASE.concat(S.custom);}
+function ts(id){return S.t[id]||(S.t[id]={s:0,c:"",h:"",st:"",en:"",r:"",n:""});}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function $(id){return document.getElementById(id);}
+var toastT;
+function toast(m){var t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("on");},2600);}
+
+/* ---------- Tabs ---------- */
+const TABS=["dashboard","topics","daily","practice","projects"];
+function showTab(name){
+  if(TABS.indexOf(name)<0)name="dashboard";
+  TABS.forEach(function(t){$("p-"+t).hidden=(t!==name);});
+  document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-selected",String(b.dataset.tab===name));});
+  if(name==="dashboard")renderDash();
+  if(location.hash!=="#"+name)history.replaceState(null,"","#"+name);
+}
+document.querySelectorAll(".tab").forEach(function(b){b.addEventListener("click",function(){showTab(b.dataset.tab);});});
+window.addEventListener("hashchange",function(){showTab(location.hash.slice(1));});
+
+/* ---------- Dashboard ---------- */
+function streak(){
+  var days={};S.daily.forEach(function(d){if(d.date)days[d.date]=1;});
+  var n=0,d=new Date();
+  function fmt(x){return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
+  if(!days[fmt(d)])d.setDate(d.getDate()-1);
+  while(days[fmt(d)]){n++;d.setDate(d.getDate()-1);}
+  return n;
+}
+function pct(x){return Math.round(x*100)+"%";}
+function renderDash(){
+  var all=topics(),total=all.length,cnt=[0,0,0,0,0],hours=0,confSum=0,confN=0,mustLeft=0,score=0;
+  all.forEach(function(t){var s=ts(t.id);cnt[s.s]++;score+=WEIGHT[s.s];var h=parseFloat(s.h);if(h>0)hours+=h;var c=parseInt(s.c,10);if(c>0){confSum+=c;confN++;}if(t.pri==="Must Know"&&s.s!==4)mustLeft++;});
+  var logH=S.daily.reduce(function(a,d){return a+(parseFloat(d.hours)||0);},0);
+  var stat=[
+    ["Total topics",total,"across "+CATS.length+" categories"],
+    ["Mastered",cnt[4],pct(total?cnt[4]/total:0)+" of all topics"],
+    ["In progress",cnt[1]+cnt[2]+cnt[3],"learning, practicing, revision"],
+    ["Progress score",pct(total?score/total:0),"weighted by status"],
+    ["Must Know left",mustLeft,"not yet mastered"],
+    ["Avg confidence",confN?(confSum/confN).toFixed(1):"-","out of 5, rated topics"],
+    ["Hours on topics",hours%1?hours.toFixed(1):hours,"sum of the Hours column"],
+    ["Study streak",streak()+" d","logged "+S.daily.length+" days, "+(logH%1?logH.toFixed(1):logH)+" h"],
+    ["Problems solved",S.practice.length,"in Practice Log"]
+  ];
+  $("stats").innerHTML=stat.map(function(s){return '<div class="stat"><div class="k">'+s[0]+'</div><div class="v">'+s[1]+'</div><div class="s">'+s[2]+'</div></div>';}).join("");
+  $("legend").innerHTML=[["Mastered","var(--bar4)"],["Revision","var(--bar3)"],["Practicing","var(--bar2)"],["Learning","var(--bar1)"],["Not started","var(--bar0)"]].map(function(l){return '<span style="--c:'+l[1]+'">'+l[0]+'</span>';}).join("");
+
+  var rows=CATS.map(function(c){
+    var items=all.filter(function(t){return t.cat===c;}),k=[0,0,0,0,0],sc=0,h=0,cs=0,cn=0;
+    items.forEach(function(t){var s=ts(t.id);k[s.s]++;sc+=WEIGHT[s.s];var hh=parseFloat(s.h);if(hh>0)h+=hh;var cc=parseInt(s.c,10);if(cc>0){cs+=cc;cn++;}});
+    var n=items.length||1;
+    return '<tr><td>'+esc(c)+'</td><td class="num">'+items.length+'</td><td class="num">'+k[0]+'</td><td class="num">'+k[1]+'</td><td class="num">'+k[2]+'</td><td class="num">'+k[3]+'</td><td class="num">'+k[4]+'</td><td class="num">'+pct(sc/n)+'</td><td class="num">'+(cn?(cs/cn).toFixed(1):"-")+'</td><td class="num">'+(h%1?h.toFixed(1):h)+'</td><td><div class="bar" role="img" aria-label="'+esc(c)+' progress">'+
+      '<i class="b4" style="width:'+(k[4]/n*100)+'%"></i><i class="b3" style="width:'+(k[3]/n*100)+'%"></i><i class="b2" style="width:'+(k[2]/n*100)+'%"></i><i class="b1" style="width:'+(k[1]/n*100)+'%"></i></div></td></tr>';
+  }).join("");
+  $("catTable").innerHTML='<thead><tr><th>Category</th><th class="num">Topics</th><th class="num">Not started</th><th class="num">Learning</th><th class="num">Practicing</th><th class="num">Revision</th><th class="num">Mastered</th><th class="num">Progress</th><th class="num">Avg conf.</th><th class="num">Hours</th><th>Status mix</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>Total</td><td class="num">'+total+'</td><td class="num">'+cnt[0]+'</td><td class="num">'+cnt[1]+'</td><td class="num">'+cnt[2]+'</td><td class="num">'+cnt[3]+'</td><td class="num">'+cnt[4]+'</td><td class="num">'+pct(total?score/total:0)+'</td><td class="num">'+(confN?(confSum/confN).toFixed(1):"-")+'</td><td class="num">'+(hours%1?hours.toFixed(1):hours)+'</td><td></td></tr></tfoot>';
+
+  var now=all.filter(function(t){var s=ts(t.id).s;return s>=1&&s<=3;}).slice(0,8);
+  $("nowList").innerHTML=now.length?now.map(function(t){var s=ts(t.id).s;return '<li><span class="t">'+esc(t.topic)+'<div class="m">'+esc(t.cat)+'</div></span><span class="chip st'+s+'">'+STATUSES[s]+'</span></li>';}).join(""):'<li class="empty">Nothing in progress. Pick a topic from the list on the right.</li>';
+  var next=all.filter(function(t){return t.pri==="Must Know"&&ts(t.id).s===0;}).slice(0,8);
+  $("nextList").innerHTML=next.length?next.map(function(t){return '<li><span class="t">'+esc(t.topic)+'<div class="m">'+esc(t.cat)+' · '+t.lvl+'</div></span><span class="m">'+t.id+'</span></li>';}).join(""):'<li class="empty">All Must Know topics have been started.</li>';
+}
+
+/* ---------- Topics table ---------- */
+function opts(list,sel){return list.map(function(o){return '<option'+(String(o)===String(sel)?' selected':'')+'>'+esc(o)+'</option>';}).join("");}
+function fillFilters(){
+  function f(id,label,list){$(id).innerHTML='<option value="">'+label+'</option>'+list.map(function(o){return '<option>'+esc(o)+'</option>';}).join("");}
+  f("fCat","All categories",CATS);f("fStatus","All statuses",STATUSES);f("fPri","All priorities",["Must Know","Good to Have","Bonus"]);f("fLvl","All levels",["Basic","Intermediate","Advanced"]);
+  $("nCat").innerHTML=CATS.map(function(c){return '<option>'+esc(c)+'</option>';}).join("");
+}
+function rowHTML(t){
+  var s=ts(t.id);
+  return '<tr data-id="'+esc(t.id)+'"><td class="id">'+esc(t.id)+'</td>'+
+  '<td><div class="tn">'+esc(t.topic)+'</div><div class="tw">'+esc(t.what)+'</div></td>'+
+  '<td class="cat">'+esc(t.cat)+'</td>'+
+  '<td><select class="stsel st'+s.s+'" data-f="s" aria-label="Status">'+STATUSES.map(function(o,i){return '<option value="'+i+'"'+(i===s.s?' selected':'')+'>'+o+'</option>';}).join("")+'</select></td>'+
+  '<td><select data-f="c" aria-label="Confidence">'+opts(["","1","2","3","4","5"],s.c)+'</select></td>'+
+  '<td><span class="pri pri-'+PRCLS[t.pri]+'">'+t.pri+'</span></td><td>'+t.lvl+'</td>'+
+  '<td><input type="number" min="0" step="0.5" data-f="h" value="'+esc(s.h)+'" aria-label="Hours spent"></td>'+
+  '<td><input type="date" data-f="st" value="'+esc(s.st)+'" aria-label="Started on"></td>'+
+  '<td><input type="date" data-f="en" value="'+esc(s.en)+'" aria-label="Completed on"></td>'+
+  '<td><input type="text" data-f="r" value="'+esc(s.r)+'" placeholder="Link or course" aria-label="Resource"></td>'+
+  '<td><textarea data-f="n" placeholder="Learnings, doubts" aria-label="Notes">'+esc(s.n)+'</textarea></td></tr>';
+}
+function renderTopics(){
+  var q=$("fSearch").value.trim().toLowerCase(),c=$("fCat").value,st=$("fStatus").value,p=$("fPri").value,l=$("fLvl").value,hide=$("fHide").checked;
+  var list=topics().filter(function(t){
+    var s=ts(t.id);
+    if(c&&t.cat!==c)return false;
+    if(st&&STATUSES[s.s]!==st)return false;
+    if(p&&t.pri!==p)return false;
+    if(l&&t.lvl!==l)return false;
+    if(hide&&s.s===4)return false;
+    if(q&&(t.topic+" "+t.what+" "+t.id+" "+t.cat+" "+s.n).toLowerCase().indexOf(q)<0)return false;
+    return true;
+  });
+  $("tCount").textContent="Showing "+list.length+" of "+topics().length;
+  $("topicTable").innerHTML='<thead><tr><th>ID</th><th>Topic and what to cover</th><th>Category</th><th>Status</th><th>Conf.</th><th>Priority</th><th>Level</th><th>Hours</th><th>Started</th><th>Completed</th><th>Resource</th><th>Notes</th></tr></thead><tbody>'+(list.length?list.map(rowHTML).join(""):'<tr><td colspan="12" class="empty">No topics match these filters.</td></tr>')+'</tbody>';
+}
+["fCat","fStatus","fPri","fLvl","fHide"].forEach(function(id){$(id).addEventListener("change",renderTopics);});
+$("fSearch").addEventListener("input",renderTopics);
+
+$("topicTable").addEventListener("change",function(e){
+  var el=e.target,f=el.dataset.f;if(!f)return;
+  var tr=el.closest("tr"),id=tr.dataset.id,s=ts(id);
+  if(f==="s"){
+    s.s=parseInt(el.value,10);el.className="stsel st"+s.s;
+    if(s.s>=1&&!s.st){s.st=today();tr.querySelector('[data-f="st"]').value=s.st;}
+    if(s.s===4&&!s.en){s.en=today();tr.querySelector('[data-f="en"]').value=s.en;}
+    if(s.s<4&&s.en){s.en="";tr.querySelector('[data-f="en"]').value="";}
+  }else{s[f]=el.value;}
+  save();
+});
+$("topicTable").addEventListener("input",function(e){
+  var el=e.target,f=el.dataset.f;if(!f||(f!=="n"&&f!=="r"&&f!=="h"))return;
+  ts(el.closest("tr").dataset.id)[f]=el.value;save();
+});
+$("btnAddTopic").addEventListener("click",function(){var f=$("topicForm");f.hidden=!f.hidden;if(!f.hidden)$("nTopic").focus();});
+$("topicForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var cat=$("nCat").value,n=BASE.concat(S.custom).filter(function(t){return t.cat===cat;}).length+1;
+  var prefix=(DATA.filter(function(d){return d[0]===cat;})[0]||[0,"X"])[1];
+  var id=prefix+"-"+String(n).padStart(2,"0");
+  while(topics().some(function(t){return t.id===id;})){n++;id=prefix+"-"+String(n).padStart(2,"0");}
+  S.custom.push({id:id,cat:cat,topic:$("nTopic").value.trim(),lvl:$("nLvl").value,pri:$("nPri").value,what:$("nWhat").value.trim(),custom:true});
+  save();$("topicForm").reset();$("topicForm").hidden=true;renderTopics();toast("Topic added as "+id);
+});
+
+/* ---------- Generic log tables ---------- */
+function makeLog(cfg){
+  var host=$(cfg.host);
+  var form='<form class="box add" id="'+cfg.host+'Form">'+cfg.fields.map(function(f){
+    var inp;
+    if(f.type==="select")inp='<select name="'+f.k+'">'+opts(f.opts,f.def||f.opts[0])+'</select>';
+    else if(f.type==="textarea")inp='<textarea name="'+f.k+'"></textarea>';
+    else inp='<input name="'+f.k+'" type="'+(f.type||"text")+'"'+(f.step?' step="'+f.step+'" min="0"':'')+(f.k==="date"?' value="'+today()+'"':'')+(f.req?' required':'')+'>';
+    return '<label'+(f.wide?' class="wide"':'')+'>'+f.label+inp+'</label>';
+  }).join("")+'<button class="btn primary go" type="submit">'+cfg.addLabel+'</button></form>';
+  host.innerHTML='<h2 class="section-title">'+cfg.title+'</h2>'+form+'<div class="box scroll"><table class="log" id="'+cfg.host+'Table"></table></div>';
+  function draw(){
+    var rows=S[cfg.key].slice();
+    if(cfg.sort)rows.sort(cfg.sort);
+    $(cfg.host+"Table").innerHTML='<thead><tr>'+cfg.fields.map(function(f){return '<th>'+f.label+'</th>';}).join("")+'<th></th></tr></thead><tbody>'+
+      (rows.length?rows.map(function(r){
+        return '<tr data-id="'+esc(r.id)+'">'+cfg.fields.map(function(f){
+          if(f.edit){
+            if(f.type==="select")return '<td><select data-k="'+f.k+'">'+opts(f.opts,r[f.k])+'</select></td>';
+            return '<td><input data-k="'+f.k+'" type="'+(f.type||"text")+'" value="'+esc(r[f.k])+'"></td>';
+          }
+          return '<td class="'+((f.type==="textarea"||f.wide)?'long':'')+'">'+esc(r[f.k])+'</td>';
+        }).join("")+'<td><button class="del" type="button" title="Delete row" aria-label="Delete row">&times;</button></td></tr>';
+      }).join(""):'<tr><td colspan="'+(cfg.fields.length+1)+'" class="empty">'+cfg.empty+'</td></tr>')+'</tbody>';
+  }
+  $(cfg.host+"Form").addEventListener("submit",function(e){
+    e.preventDefault();
+    var fd=new FormData(e.target),r={id:"r"+Date.now()+Math.floor(Math.random()*1000)};
+    cfg.fields.forEach(function(f){r[f.k]=(fd.get(f.k)||"").toString().trim();});
+    S[cfg.key].push(r);save();
+    e.target.reset();
+    draw();toast("Added");
+  });
+  var tbl=$(cfg.host+"Table");
+  tbl.addEventListener("click",function(e){
+    if(!e.target.classList.contains("del"))return;
+    var btn=e.target;
+    if(!btn.dataset.sure){btn.dataset.sure="1";btn.textContent="Sure?";setTimeout(function(){btn.dataset.sure="";btn.innerHTML="&times;";},2500);return;}
+    var id=btn.closest("tr").dataset.id;S[cfg.key]=S[cfg.key].filter(function(r){return r.id!==id;});save();draw();
+  });
+  tbl.addEventListener("change",function(e){
+    var k=e.target.dataset.k;if(!k)return;
+    var id=e.target.closest("tr").dataset.id,r=S[cfg.key].filter(function(x){return x.id===id;})[0];
+    if(r){r[k]=e.target.value;save();}
+  });
+  cfg.draw=draw;draw();
+}
+function byDateDesc(a,b){return (b.date||"").localeCompare(a.date||"");}
+const LOGS=[
+ {host:"daily",key:"daily",title:"Daily study log",addLabel:"Add entry",empty:"No entries yet. Log today's study session above.",sort:byDateDesc,fields:[
+  {k:"date",label:"Date",type:"date",req:true},{k:"hours",label:"Hours",type:"number",step:"0.5",req:true},
+  {k:"area",label:"Topic / area",type:"select",opts:CATS},
+  {k:"learned",label:"What I learned",type:"textarea",wide:true},{k:"practice",label:"Practice done",type:"textarea",wide:true},
+  {k:"blockers",label:"Blockers / doubts",type:"textarea",wide:true},{k:"plan",label:"Tomorrow's plan",type:"textarea",wide:true}]},
+ {host:"practice",key:"practice",title:"Practice log",addLabel:"Add problem",empty:"No problems logged yet.",sort:byDateDesc,fields:[
+  {k:"date",label:"Date",type:"date",req:true},
+  {k:"platform",label:"Platform",type:"select",opts:["LeetCode","StrataScratch","DataLemur","HackerRank","Mode SQL","Kaggle","Work task","Other"]},
+  {k:"area",label:"Area",type:"select",opts:["SQL","Python","Excel","Statistics","BI / Dashboard","Case study","Other"]},
+  {k:"problem",label:"Problem / task",wide:true,req:true},
+  {k:"difficulty",label:"Difficulty",type:"select",opts:["Easy","Medium","Hard"],def:"Medium"},
+  {k:"result",label:"Result",type:"select",opts:["Solved alone","Solved with hint","Read the solution","Unsolved"]},
+  {k:"minutes",label:"Minutes taken",type:"number",step:"5"},
+  {k:"learning",label:"Key learning / pattern",type:"textarea",wide:true},
+  {k:"revisit",label:"Revisit on",type:"date",edit:true}]},
+ {host:"projects",key:"projects",title:"Projects and portfolio",addLabel:"Add project",empty:"No projects yet.",fields:[
+  {k:"name",label:"Project",req:true},
+  {k:"type",label:"Type",type:"select",opts:["Portfolio","Work","Case Study","Kaggle","Course"]},
+  {k:"status",label:"Status",type:"select",opts:["Idea","In Progress","Completed","Published"],edit:true},
+  {k:"question",label:"Business question",wide:true},{k:"tools",label:"Tools used"},{k:"dataset",label:"Dataset / source"},
+  {k:"start",label:"Start",type:"date",edit:true},{k:"end",label:"End",type:"date",edit:true},
+  {k:"insight",label:"Key insight / impact",edit:true},{k:"link",label:"Link (GitHub / dashboard)",edit:true}]}
+];
+function initLogs(){LOGS.forEach(makeLog);}
+
+/* ---------- Export / backup ---------- */
+function download(name,text,type){
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:type}));a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+}
+function csvCell(x){x=String(x==null?"":x);if(/^[=+\-@\t\r]/.test(x))x="'"+x;return '"'+x.replace(/"/g,'""')+'"';}
+$("btnCsv").addEventListener("click",function(){
+  var head=["ID","Category","Topic","What to cover","Status","Confidence","Priority","Level","Hours","Started","Completed","Resource","Notes"];
+  var rows=topics().map(function(t){var s=ts(t.id);return [t.id,t.cat,t.topic,t.what,STATUSES[s.s],s.c,t.pri,t.lvl,s.h,s.st,s.en,s.r,s.n];});
+  download("data-analyst-topics-"+today()+".csv",[head].concat(rows).map(function(r){return r.map(csvCell).join(",");}).join("\n"),"text/csv");
+});
+$("btnBackup").addEventListener("click",function(){download("data-analyst-tracker-backup-"+today()+".json",JSON.stringify(S,null,2),"application/json");});
+$("btnRestore").addEventListener("click",function(){$("fileRestore").click();});
+$("fileRestore").addEventListener("change",function(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var o=JSON.parse(r.result);
+      if(typeof o!=="object"||!o||typeof o.t!=="object")throw new Error("bad");
+      S={t:o.t||{},custom:Array.isArray(o.custom)?o.custom:[],daily:Array.isArray(o.daily)?o.daily:[],practice:Array.isArray(o.practice)?o.practice:[],projects:Array.isArray(o.projects)?o.projects:S.projects};
+      save();renderTopics();LOGS.forEach(function(c){c.draw();});renderDash();toast("Backup restored");
+    }catch(err){toast("That file is not a valid tracker backup.");}
+    e.target.value="";
+  };
+  r.readAsText(f);
+});
+
+/* ---------- Boot ---------- */
+load();fillFilters();renderTopics();initLogs();
+showTab(location.hash.slice(1)||"dashboard");
+</script>
+</body>
+</html>
 
